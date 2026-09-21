@@ -213,6 +213,89 @@ function apiJSONP(page, data, onSuccess, onError){
   document.body.appendChild(script);
 }
 
+
+function getStoredToken(){
+  try{
+    return sessionStorage.getItem('BRISK_AUTH_TOKEN') ||
+           localStorage.getItem('BRISK_AUTH_TOKEN') || '';
+  }catch(e){
+    return '';
+  }
+}
+
+function apiAuthToken(token, onSuccess, onError){
+  const callback='briskAuthCB_'+Date.now()+'_'+(++callbackCounter);
+  const script=document.createElement('script');
+  const query=new URLSearchParams({
+    page:'api_auth',
+    callback:callback,
+    token:String(token||'')
+  });
+
+  let finished=false;
+  const cleanup=()=>{
+    if(script.parentNode)script.parentNode.removeChild(script);
+    try{delete window[callback]}catch(e){window[callback]=undefined}
+  };
+  const fail=(msg)=>{
+    if(finished)return;
+    finished=true;
+    clearTimeout(timer);
+    cleanup();
+    if(onError)onError(msg);
+  };
+  const timer=setTimeout(()=>fail('Session semakan timeout.'),10000);
+
+  window[callback]=function(result){
+    if(finished)return;
+    finished=true;
+    clearTimeout(timer);
+    cleanup();
+    if(onSuccess)onSuccess(result||{authenticated:false});
+  };
+
+  script.onerror=()=>fail('Tidak dapat menghubungi server.');
+  script.src=API_URL+'?'+query.toString();
+  document.body.appendChild(script);
+}
+
+function redirectAfterExistingLogin(ctx){
+  let target=TARGET;
+  if(!PUBLIC_TARGETS.includes(target))target='index';
+
+  let url=target+'.html';
+
+  if(target==='printkaunter' && String(ctx.role||'').toUpperCase()==='URUSETIA'){
+    const currentCounter=new URLSearchParams(window.location.search).get('counter') || '';
+    const counter=currentCounter || String(ctx.counter||'').replace(/^KAUNTER\s+/i,'');
+    if(counter) url+='?counter='+encodeURIComponent(counter);
+  }
+
+  window.location.replace(url);
+}
+
+function checkExistingLogin(){
+  const token=getStoredToken();
+  if(!token)return;
+
+  showLoading(true);
+
+  apiAuthToken(token,function(r){
+    if(r && r.authenticated===true){
+      redirectAfterExistingLogin(r);
+      return;
+    }
+
+    try{sessionStorage.removeItem('BRISK_AUTH_TOKEN')}catch(e){}
+    try{localStorage.removeItem('BRISK_AUTH_TOKEN')}catch(e){}
+    showLoading(false);
+  },function(){
+    // Jika server sementara tak respons, jangan paksa user keluar.
+    // Borang login kekal tersedia.
+    showLoading(false);
+  });
+}
+
 function login(){
   clearMsg();
   const role=document.getElementById('role').value;
@@ -277,6 +360,7 @@ document.getElementById('password').addEventListener('input',clearMsg);
 
 populateCounters();
 roleChanged();
+checkExistingLogin();
 </script>
 </body>
 </html>
