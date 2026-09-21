@@ -331,7 +331,9 @@ async function ensureAuth(){
   try{
     const data=await apiJSONP("api_auth",{token});
 
-    if(!data || !data.success || data.authenticated!==true){
+    // api_auth daripada Apps Script memulangkan {authenticated:true,...}
+    // dan tidak semestinya mempunyai property "success".
+    if(!data || data.authenticated!==true){
       sessionStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(TOKEN_KEY);
       redirectToPrintLogin();
