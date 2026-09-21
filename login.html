@@ -2,231 +2,274 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brisk Walk 2026 — Login</title>
 <style>
 *{box-sizing:border-box}
 :root{
-  --bg:#07111f;
-  --panel:rgba(15,27,45,.88);
-  --panel2:rgba(20,36,58,.88);
-  --line:rgba(255,255,255,.10);
-  --text:#f4f8ff;
-  --muted:#9fb0c7;
-  --accent:#39d98a;
-  --accent2:#35a7ff;
-  --danger:#ff647c;
-  --shadow:0 24px 70px rgba(0,0,0,.38);
+  --bg1:#071426;--bg2:#0b1d33;--card:#0d1b2d;--line:#22344b;
+  --text:#eef4ff;--muted:#9aabc0;--accent:#39b8ff;--green:#35d59a;
+  --danger:#ff7180;
 }
+html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif}
 body{
-  margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:28px;background:
+  radial-gradient(circle at 18% 15%,rgba(57,184,255,.12),transparent 30%),
+  radial-gradient(circle at 85% 85%,rgba(53,213,154,.10),transparent 30%),
+  linear-gradient(135deg,var(--bg1),var(--bg2));
   color:var(--text);
-  background:
-    radial-gradient(circle at 15% 15%,rgba(53,167,255,.16),transparent 32%),
-    radial-gradient(circle at 85% 85%,rgba(57,217,138,.13),transparent 32%),
-    linear-gradient(135deg,#06101d,#0a1728 55%,#07111f);
 }
-.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.shell{width:min(980px,100%);display:grid;grid-template-columns:1.05fr .95fr;gap:22px}
-.brand,.card{
-  background:var(--panel);border:1px solid var(--line);border-radius:28px;
-  box-shadow:var(--shadow);backdrop-filter:blur(18px);
+.shell{
+  width:min(920px,100%);display:grid;grid-template-columns:1fr 1fr;
+  border:1px solid rgba(255,255,255,.08);border-radius:28px;overflow:hidden;
+  background:rgba(8,22,38,.88);box-shadow:0 30px 90px rgba(0,0,0,.35);
 }
-.brand{padding:42px;display:flex;flex-direction:column;justify-content:center;min-height:590px}
+.brand{
+  padding:56px 42px;background:linear-gradient(145deg,#0d2137,#0b182a);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;
+}
 .logo{
-  width:76px;height:76px;border-radius:24px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  color:#06111d;font-size:34px;font-weight:900;box-shadow:0 15px 40px rgba(53,167,255,.22)
+  width:64px;height:64px;border-radius:19px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--accent),var(--green));color:#062036;
+  font-size:25px;font-weight:900;margin-bottom:24px;
 }
-.eyebrow{margin-top:28px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:2px}
-h1{font-size:42px;line-height:1.05;margin:10px 0 14px}
-.brand p{color:var(--muted);line-height:1.7;max-width:470px}
-.features{display:grid;gap:12px;margin-top:25px}
-.feature{display:flex;gap:12px;align-items:center;color:#dbe7f7;font-size:14px}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px rgba(57,217,138,.7)}
-.card{padding:34px;min-height:590px;display:flex;flex-direction:column;justify-content:center}
-.card h2{margin:0 0 7px;font-size:28px}
-.sub{color:var(--muted);font-size:14px;margin:0 0 25px}
-label{display:block;font-size:12px;font-weight:800;color:#b9c8da;margin:17px 0 8px}
+.eyebrow{font-size:11px;letter-spacing:2px;font-weight:900;color:var(--green);margin-bottom:9px}
+h1{font-size:42px;line-height:1.02;margin:0 0 22px}
+.brand p{color:var(--muted);line-height:1.65;font-size:14px;max-width:360px}
+.online{
+  margin-top:22px;padding:9px 12px;border-radius:10px;background:rgba(53,213,154,.10);
+  color:var(--green);font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:7px;width:max-content
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.points{margin-top:24px;display:grid;gap:12px;color:#c9d5e4;font-size:12px}
+.points div{display:flex;gap:9px;align-items:center}.points span{color:var(--green)}
+.form{padding:42px 32px;display:flex;flex-direction:column;justify-content:center}
+.form h2{font-size:26px;margin:0 0 7px}.sub{font-size:12px;color:var(--muted);margin-bottom:25px}
+label{display:block;font-size:10px;letter-spacing:.8px;font-weight:900;color:#aebbd0;margin:0 0 7px;text-transform:uppercase}
 select,input{
-  width:100%;height:50px;border-radius:14px;border:1px solid var(--line);
-  background:#091625;color:var(--text);padding:0 14px;outline:none;font-size:14px
+  width:100%;height:44px;border:1px solid var(--line);border-radius:12px;
+  background:#091728;color:var(--text);padding:0 13px;outline:none;font-size:13px
 }
-select:focus,input:focus{border-color:rgba(53,167,255,.7);box-shadow:0 0 0 3px rgba(53,167,255,.10)}
-.password{position:relative}
-.password input{padding-right:50px}
-.eye{position:absolute;right:7px;top:7px;width:38px;height:36px;border:0;background:transparent;color:#a9bad0;cursor:pointer;border-radius:10px}
-.eye:hover{background:rgba(255,255,255,.06)}
-.btn{
-  width:100%;height:51px;border:0;border-radius:14px;margin-top:24px;cursor:pointer;
-  font-weight:900;font-size:14px;color:#06111d;background:linear-gradient(135deg,var(--accent2),var(--accent));
-  box-shadow:0 12px 28px rgba(53,167,255,.18)
+select:focus,input:focus{border-color:#3b82b8;box-shadow:0 0 0 3px rgba(57,184,255,.09)}
+.field{margin-bottom:16px}.password-wrap{position:relative}
+.password-wrap input{padding-right:45px}
+.eye{
+  position:absolute;right:4px;top:3px;width:38px;height:38px;border:0;border-radius:9px;
+  background:transparent;color:#8799b0;cursor:pointer
 }
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.home{
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;
-  margin-top:12px;border-radius:14px;border:1px solid rgba(255,255,255,.13);
-  background:rgba(255,255,255,.045);color:#dce8f7;text-decoration:none;font-weight:800;font-size:14px
+.login,.home{
+  width:100%;height:45px;border:0;border-radius:12px;font-weight:900;cursor:pointer
 }
-.home:hover{background:rgba(255,255,255,.08)}
-.status{min-height:20px;margin-top:14px;text-align:center;font-size:13px;color:var(--muted)}
-.footer{text-align:center;color:#70829a;font-size:11px;margin-top:24px}
-.badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(57,217,138,.10);color:var(--accent);font-size:10px;font-weight:900;margin-top:14px}
+.login{background:linear-gradient(135deg,var(--accent),var(--green));color:#061726;margin-top:3px}
+.login:disabled{opacity:.55;cursor:wait}
+.home{margin-top:9px;background:#14263b;border:1px solid var(--line);color:#d7e1ee}
+.msg{min-height:22px;text-align:center;margin:12px 0 0;font-size:11px;font-weight:800;color:var(--danger);line-height:1.45}
+.footer{text-align:center;color:#65788f;font-size:9px;margin-top:17px}
+.hidden{display:none!important}
+.loading{
+  position:fixed;inset:0;background:rgba(3,10,18,.72);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:50
+}
+.loading.show{display:flex}
+.loading-card{background:#0d1b2d;border:1px solid var(--line);border-radius:18px;padding:24px 28px;text-align:center;box-shadow:0 20px 60px #0008}
+.spinner{width:30px;height:30px;border:3px solid #29415b;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:760px){
-  .shell{grid-template-columns:1fr}
-  .brand{display:none}
-  .card{min-height:auto;padding:27px}
-  .wrap{padding:14px}
+  body{padding:14px}.shell{grid-template-columns:1fr;border-radius:22px}
+  .brand{padding:30px 24px;border-right:0;border-bottom:1px solid var(--line)}
+  .brand h1{font-size:34px}.points{display:none}.form{padding:28px 22px}
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <main class="shell">
-    <section class="brand">
-      <div class="logo">BW</div>
-      <div class="eyebrow">BRISK WALK 2026</div>
-      <h1>Operations<br>Login</h1>
-      <p>Log masuk untuk mengurus operasi pendaftaran, peserta dan kaunter Brisk Walk 2026.</p>
-      <div class="badge">● SYSTEM ONLINE</div>
-      <div class="features">
-        <div class="feature"><span class="dot"></span> Admin — akses pengurusan sistem</div>
-        <div class="feature"><span class="dot"></span> Urusetia — akses mengikut kaunter</div>
-        <div class="feature"><span class="dot"></span> Keselamatan disahkan melalui server</div>
-      </div>
-    </section>
 
-    <section class="card">
-      <h2>Log Masuk</h2>
-      <p class="sub">Sila pilih peranan dan masukkan maklumat akses.</p>
+<div class="shell">
+  <section class="brand">
+    <div class="logo">BW</div>
+    <div class="eyebrow">BRISK WALK 2026</div>
+    <h1>Operations<br>Login</h1>
+    <p>Log masuk untuk mengurus operasi pendaftaran, peserta dan kaunter Brisk Walk 2026.</p>
+    <div class="online"><span class="dot"></span>SYSTEM ONLINE</div>
+    <div class="points">
+      <div><span>●</span> Admin — akses pengurusan sistem</div>
+      <div><span>●</span> Urusetia — akses mengikut kaunter</div>
+      <div><span>●</span> Keselamatan disahkan melalui server</div>
+    </div>
+  </section>
 
-      <label for="role">PERANAN</label>
+  <section class="form">
+    <h2>Log Masuk</h2>
+    <div class="sub" id="subtitle">Sila pilih peranan dan masukkan maklumat akses.</div>
+
+    <div class="field">
+      <label for="role">Peranan</label>
       <select id="role" onchange="roleChanged()">
-        <option value="Admin">Admin</option>
-        <option value="Urusetia">Urusetia</option>
+        <option value="ADMIN">Admin</option>
+        <option value="URUSETIA">Urusetia</option>
       </select>
+    </div>
 
-      <div id="counterWrap" style="display:none">
-        <label for="counter">KAUNTER</label>
-        <select id="counter"></select>
+    <div class="field hidden" id="counterField">
+      <label for="counter">Kaunter</label>
+      <select id="counter"></select>
+    </div>
+
+    <div class="field">
+      <label for="password">Kata Laluan</label>
+      <div class="password-wrap">
+        <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password">
+        <button class="eye" type="button" onclick="togglePassword()" id="eye">◉</button>
       </div>
+    </div>
 
-      <label for="password">KATA LALUAN</label>
-      <div class="password">
-        <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan kata laluan"
-               onkeydown="if(event.key==='Enter')login()">
-        <button class="eye" type="button" onclick="togglePassword()" aria-label="Lihat kata laluan">👁</button>
-      </div>
+    <button class="login" id="loginBtn" onclick="login()">🔐 LOG MASUK</button>
+    <button class="home" onclick="goHome()">🏠 KEMBALI</button>
+    <div class="msg" id="msg"></div>
+    <div class="footer">Brisk Walk 2026 • Registration &amp; Management System</div>
+  </section>
+</div>
 
-      <button class="btn" id="loginBtn" onclick="login()">🔐 LOG MASUK</button>
-
-      <!-- HOME BUTTON: sentiasa kelihatan -->
-      <a class="home" href="index.html">🏠 KEMBALI KE HOME</a>
-
-      <div class="status" id="status"></div>
-      <div class="footer">Brisk Walk 2026 • Registration & Management System</div>
-    </section>
-  </main>
+<div class="loading" id="loading">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div style="font-weight:900;font-size:13px">Mengesahkan Login</div>
+    <div style="color:#93a5ba;font-size:10px;margin-top:5px">Sila tunggu...</div>
+  </div>
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
-const TOKEN_KEY="BRISK_AUTH_TOKEN";
+const API_URL = 'https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec';
+const params = new URLSearchParams(window.location.search);
+const TARGET = params.get('target') || 'index';
+let callbackCounter = 0;
 
-const counterSelect=document.getElementById("counter");
-for(let i=1;i<=16;i++){
-  const o=document.createElement("option");
-  o.value=i;
-  o.textContent="KAUNTER "+i;
-  counterSelect.appendChild(o);
+const ADMIN_ONLY = ['master','participants','padananklb'];
+const PUBLIC_TARGETS = ['index','search','login','dashboard','printkaunter','padananklb','participants','master'];
+
+function populateCounters(){
+  const el=document.getElementById('counter');
+  el.innerHTML='';
+  for(let i=1;i<=16;i++){
+    const o=document.createElement('option');
+    o.value='KAUNTER '+i;o.textContent='KAUNTER '+i;el.appendChild(o);
+  }
 }
 
 function roleChanged(){
-  document.getElementById("counterWrap").style.display =
-    document.getElementById("role").value==="Urusetia" ? "block" : "none";
+  const role=document.getElementById('role').value;
+  const wrap=document.getElementById('counterField');
+  wrap.classList.toggle('hidden',role!=='URUSETIA');
+  document.getElementById('subtitle').textContent =
+    role==='ADMIN' ? 'Akses pentadbiran sistem.' : 'Pilih kaunter Urusetia anda.';
+  clearMsg();
 }
 
 function togglePassword(){
-  const el=document.getElementById("password");
-  el.type=el.type==="password"?"text":"password";
+  const input=document.getElementById('password');
+  const eye=document.getElementById('eye');
+  if(input.type==='password'){input.type='text';eye.textContent='◉';}
+  else{input.type='password';eye.textContent='◉';}
 }
 
-function setStatus(msg,type=""){
-  const el=document.getElementById("status");
-  el.textContent=msg||"";
-  el.style.color=type==="error"?"#ff8195":type==="ok"?"#55e59b":"#9fb0c7";
+function clearMsg(){document.getElementById('msg').textContent=''}
+function showMsg(msg){document.getElementById('msg').textContent='❌ '+msg}
+
+function showLoading(on){
+  document.getElementById('loading').classList.toggle('show',!!on);
+  document.getElementById('loginBtn').disabled=!!on;
+  document.getElementById('loginBtn').textContent=on?'⏳ SEMAK LOGIN...':'🔐 LOG MASUK';
 }
 
-function apiJSONP(page,params={}){
-  return new Promise((resolve,reject)=>{
-    const cb="bwLogin_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-    const script=document.createElement("script");
-    const q=new URLSearchParams({page,...params,callback:cb});
-    const timer=setTimeout(()=>{cleanup();reject(new Error("API timeout"));},15000);
+function apiJSONP(page, data, onSuccess, onError){
+  const callback='briskLoginCB_'+Date.now()+'_'+(++callbackCounter);
+  const script=document.createElement('script');
+  const query=new URLSearchParams();
+  query.set('page',page);
+  query.set('callback',callback);
+  Object.keys(data||{}).forEach(k=>query.set(k,String(data[k]??'')));
 
-    function cleanup(){
-      clearTimeout(timer);
-      delete window[cb];
-      script.remove();
+  let finished=false;
+  const cleanup=()=>{
+    if(script.parentNode)script.parentNode.removeChild(script);
+    try{delete window[callback]}catch(e){window[callback]=undefined}
+  };
+  const fail=(msg)=>{
+    if(finished)return;finished=true;cleanup();
+    if(onError)onError(msg);
+  };
+  const timer=setTimeout(()=>fail('Server tidak memberi respons. Semak deployment Apps Script dan API.'),20000);
+
+  window[callback]=function(result){
+    if(finished)return;finished=true;clearTimeout(timer);cleanup();
+    if(result && result.success===false){
+      onSuccess(result);
+    }else{
+      onSuccess(result||{success:false,message:'Respons server kosong.'});
     }
-    window[cb]=(data)=>{cleanup();resolve(data);};
-    script.onerror=()=>{cleanup();reject(new Error("Tidak dapat menghubungi server."));};
-    script.src=API_URL+"?"+q.toString();
-    document.body.appendChild(script);
-  });
+  };
+  script.onerror=()=>{clearTimeout(timer);fail('Tidak dapat menghubungi Brisk Walk API.');};
+  script.src=API_URL+'?'+query.toString();
+  document.body.appendChild(script);
 }
 
-async function login(){
-  const btn=document.getElementById("loginBtn");
-  const role=document.getElementById("role").value;
-  const counter=document.getElementById("counter").value;
-  const password=document.getElementById("password").value;
+function login(){
+  clearMsg();
+  const role=document.getElementById('role').value;
+  const counter=role==='URUSETIA'?document.getElementById('counter').value:'ADMIN';
+  const password=document.getElementById('password').value;
 
   if(!password){
-    setStatus("Sila masukkan kata laluan.","error");
-    document.getElementById("password").focus();
+    showMsg('Sila masukkan password.');
+    document.getElementById('password').focus();
+    return;
+  }
+  if(ADMIN_ONLY.includes(TARGET) && role!=='ADMIN'){
+    showMsg('Halaman ini hanya untuk ADMIN.');
     return;
   }
 
-  btn.disabled=true;
-  btn.textContent="⏳ LOG MASUK...";
-  setStatus("Mengesahkan akses...");
+  showLoading(true);
 
-  try{
-    const data=await apiJSONP("api_login",{
-      role,
-      counter:role==="Urusetia"?counter:"",
-      password
-    });
-
-    if(!data || !data.success){
-      throw new Error(data?.message || "Log masuk gagal.");
+  apiJSONP('api_login',{
+    role:role,
+    counter:counter,
+    password:password
+  },function(r){
+    if(!r || !r.success || !r.token){
+      showLoading(false);
+      showMsg((r&&r.message)||'Password salah atau akaun tidak aktif.');
+      return;
     }
 
-    const token=data.authToken || data.token || "";
-    if(!token) throw new Error("Token sesi tidak diterima daripada server.");
+    try{sessionStorage.setItem('BRISK_AUTH_TOKEN',r.token)}catch(e){}
+    try{localStorage.setItem('BRISK_AUTH_TOKEN',r.token)}catch(e){}
 
-    sessionStorage.setItem(TOKEN_KEY,token);
-    localStorage.setItem(TOKEN_KEY,token);
+    let target=TARGET;
+    if(!PUBLIC_TARGETS.includes(target))target='index';
 
-    setStatus("Log masuk berjaya. Membuka sistem...","ok");
-
-    setTimeout(()=>{
-      if(role==="Admin"){
-        window.location.href="dashboard.html";
-      }else{
-        window.location.href="search.html";
-      }
-    },450);
-
-  }catch(err){
-    console.error(err);
-    setStatus(err.message || "Log masuk gagal.","error");
-    btn.disabled=false;
-    btn.textContent="🔐 LOG MASUK";
-  }
+    let url=target+'.html';
+    if(target==='index')url='index.html';
+    if(target==='printkaunter'){
+      url+='?counter='+encodeURIComponent(counter);
+    }
+    window.location.href=url;
+  },function(err){
+    showLoading(false);
+    showMsg(err||'Login gagal.');
+  });
 }
 
+function goHome(){
+  window.location.href='index.html';
+}
+
+document.getElementById('password').addEventListener('keydown',e=>{
+  if(e.key==='Enter')login();
+});
+document.getElementById('password').addEventListener('input',clearMsg);
+
+populateCounters();
 roleChanged();
 </script>
 </body>
