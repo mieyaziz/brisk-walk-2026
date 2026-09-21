@@ -1,1 +1,2230 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Brisk Walk 2026 | Tangga Batu</title>
+
+  <meta name="description"
+        content="Brisk Walk 2026 Tangga Batu - Sistem Pendaftaran & Pengurusan Peserta">
+
+  <meta name="theme-color" content="#071a13">
+
+  <style>
+
+    /* =========================================================
+       RESET
+    ========================================================= */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+      background:
+        #f5f8f6;
+
+      color: #10251d;
+      min-height: 100vh;
+    }
+
+    button,
+    a {
+      font-family: inherit;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+
+    /* =========================================================
+       VARIABLES
+    ========================================================= */
+
+    :root {
+
+      --green-950: #04140e;
+      --green-900: #071a13;
+      --green-800: #0b2a1f;
+      --green-700: #0f3d2d;
+      --green-600: #126244;
+      --green-500: #15945f;
+      --green-400: #22b875;
+      --green-100: #e5f7ed;
+
+      --gold: #f4c95d;
+      --gold-dark: #d7a933;
+
+      --white: #ffffff;
+      --text: #10251d;
+      --muted: #64756e;
+
+      --border: rgba(16, 37, 29, .09);
+
+      --shadow:
+        0 20px 50px rgba(7, 42, 31, .10);
+
+      --shadow-small:
+        0 8px 25px rgba(7, 42, 31, .08);
+
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+
+    header {
+
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      background:
+        rgba(7, 26, 19, .94);
+
+      backdrop-filter: blur(15px);
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
+    }
+
+    .nav {
+
+      width: min(1180px, calc(100% - 32px));
+      margin: auto;
+
+      min-height: 72px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+    }
+
+    .brand {
+
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      color: white;
+    }
+
+    .brand-logo {
+
+      width: 44px;
+      height: 44px;
+
+      border-radius: 13px;
+
+      display: grid;
+      place-items: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold),
+          #ffe69b
+        );
+
+      color: var(--green-900);
+
+      font-size: 23px;
+      font-weight: 900;
+
+      box-shadow:
+        0 8px 20px rgba(244,201,93,.22);
+    }
+
+    .brand-text strong {
+
+      display: block;
+
+      font-size: 15px;
+      letter-spacing: .8px;
+    }
+
+    .brand-text span {
+
+      display: block;
+
+      margin-top: 2px;
+
+      color:
+        rgba(255,255,255,.60);
+
+      font-size: 11px;
+    }
+
+
+    .nav-links {
+
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .nav-links a {
+
+      color:
+        rgba(255,255,255,.78);
+
+      padding:
+        10px 13px;
+
+      border-radius: 10px;
+
+      font-size: 13px;
+      font-weight: 600;
+
+      transition: .2s;
+    }
+
+    .nav-links a:hover {
+
+      background:
+        rgba(255,255,255,.08);
+
+      color: white;
+    }
+
+    .nav-login {
+
+      border:
+        1px solid rgba(255,255,255,.18);
+
+      background:
+        rgba(255,255,255,.06);
+    }
+
+
+    /* =========================================================
+       HERO
+    ========================================================= */
+
+    .hero {
+
+      position: relative;
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 80% 15%,
+          rgba(34,184,117,.18),
+          transparent 28%
+        ),
+
+        radial-gradient(
+          circle at 10% 90%,
+          rgba(244,201,93,.10),
+          transparent 25%
+        ),
+
+        linear-gradient(
+          135deg,
+          #04140e 0%,
+          #092419 50%,
+          #0b3a29 100%
+        );
+
+      color: white;
+    }
+
+
+    .hero::before {
+
+      content: "";
+
+      position: absolute;
+
+      width: 500px;
+      height: 500px;
+
+      border-radius: 50%;
+
+      right: -220px;
+      top: -250px;
+
+      border:
+        1px solid rgba(255,255,255,.06);
+
+      box-shadow:
+        0 0 0 80px rgba(255,255,255,.015),
+        0 0 0 160px rgba(255,255,255,.01);
+    }
+
+
+    .hero-inner {
+
+      position: relative;
+      z-index: 1;
+
+      width: min(1180px, calc(100% - 32px));
+      margin: auto;
+
+      padding:
+        85px 0 75px;
+
+      display: grid;
+
+      grid-template-columns:
+        1.25fr
+        .75fr;
+
+      gap: 60px;
+
+      align-items: center;
+    }
+
+
+    .eyebrow {
+
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding:
+        8px 13px;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.07);
+
+      border:
+        1px solid rgba(255,255,255,.10);
+
+      color:
+        #c7e7d8;
+
+      font-size: 12px;
+      font-weight: 700;
+
+      letter-spacing: .8px;
+
+      margin-bottom: 22px;
+    }
+
+    .live-dot {
+
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: #38e58a;
+
+      box-shadow:
+        0 0 0 5px rgba(56,229,138,.10);
+    }
+
+
+    .hero h1 {
+
+      font-size:
+        clamp(42px, 6vw, 76px);
+
+      line-height: .96;
+
+      letter-spacing:
+        -3px;
+
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+
+      color: var(--gold);
+    }
+
+
+    .hero-description {
+
+      max-width: 620px;
+
+      color:
+        rgba(255,255,255,.70);
+
+      font-size: 17px;
+
+      line-height: 1.7;
+
+      margin-bottom: 32px;
+    }
+
+
+    .hero-actions {
+
+      display: flex;
+      flex-wrap: wrap;
+
+      gap: 12px;
+    }
+
+
+    .btn {
+
+      border: 0;
+
+      cursor: pointer;
+
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 9px;
+
+      min-height: 48px;
+
+      padding:
+        0 20px;
+
+      border-radius:
+        14px;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      transition:
+        transform .18s,
+        box-shadow .18s,
+        background .18s;
+    }
+
+    .btn:hover {
+
+      transform:
+        translateY(-2px);
+    }
+
+
+    .btn-primary {
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold),
+          #ffe69b
+        );
+
+      color:
+        #183019;
+
+      box-shadow:
+        0 12px 30px rgba(244,201,93,.20);
+    }
+
+
+    .btn-secondary {
+
+      color: white;
+
+      background:
+        rgba(255,255,255,.07);
+
+      border:
+        1px solid rgba(255,255,255,.14);
+    }
+
+
+    /* =========================================================
+       HERO VISUAL
+    ========================================================= */
+
+    .hero-card {
+
+      position: relative;
+
+      padding: 24px;
+
+      border-radius:
+        var(--radius-xl);
+
+      background:
+        rgba(255,255,255,.075);
+
+      border:
+        1px solid rgba(255,255,255,.12);
+
+      box-shadow:
+        0 30px 80px rgba(0,0,0,.20);
+
+      backdrop-filter:
+        blur(18px);
+    }
+
+
+    .hero-card-top {
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-bottom: 25px;
+    }
+
+    .hero-card-title {
+
+      font-size: 12px;
+
+      color:
+        rgba(255,255,255,.60);
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        1px;
+    }
+
+
+    .api-status {
+
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      color: #9ef0c2;
+    }
+
+    .status-dot {
+
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: #39df88;
+
+      box-shadow:
+        0 0 0 5px rgba(57,223,136,.10);
+    }
+
+    .status-dot.offline {
+
+      background: #ff7373;
+
+      box-shadow:
+        0 0 0 5px rgba(255,115,115,.10);
+    }
+
+
+    .hero-number {
+
+      font-size: 58px;
+
+      font-weight: 900;
+
+      letter-spacing:
+        -3px;
+
+      margin-bottom: 5px;
+    }
+
+    .hero-number-label {
+
+      color:
+        rgba(255,255,255,.58);
+
+      font-size: 13px;
+    }
+
+
+    .mini-progress {
+
+      height: 9px;
+
+      margin:
+        24px 0 20px;
+
+      background:
+        rgba(255,255,255,.08);
+
+      border-radius: 99px;
+
+      overflow: hidden;
+    }
+
+    .mini-progress span {
+
+      display: block;
+
+      height: 100%;
+
+      width: 0%;
+
+      border-radius: inherit;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--gold),
+          #7df0b0
+        );
+
+      transition:
+        width .5s ease;
+    }
+
+
+    .hero-card-footer {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      color:
+        rgba(255,255,255,.55);
+
+      font-size: 11px;
+    }
+
+
+    /* =========================================================
+       MAIN
+    ========================================================= */
+
+    main {
+
+      width: min(1180px, calc(100% - 32px));
+
+      margin: auto;
+    }
+
+
+    .section {
+
+      padding:
+        75px 0;
+    }
+
+
+    .section-heading {
+
+      margin-bottom: 30px;
+    }
+
+    .section-heading small {
+
+      display: block;
+
+      color:
+        var(--green-600);
+
+      font-size: 12px;
+      font-weight: 900;
+
+      letter-spacing:
+        1.2px;
+
+      text-transform:
+        uppercase;
+
+      margin-bottom: 8px;
+    }
+
+    .section-heading h2 {
+
+      font-size:
+        clamp(27px, 4vw, 38px);
+
+      letter-spacing:
+        -1.2px;
+
+      margin-bottom: 8px;
+    }
+
+    .section-heading p {
+
+      color:
+        var(--muted);
+
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+
+    /* =========================================================
+       ACTION CARDS
+    ========================================================= */
+
+    .action-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 18px;
+    }
+
+
+    .action-card {
+
+      position: relative;
+
+      overflow: hidden;
+
+      background: white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        var(--radius-lg);
+
+      padding: 25px;
+
+      box-shadow:
+        var(--shadow-small);
+
+      transition:
+        transform .2s,
+        box-shadow .2s;
+    }
+
+
+    .action-card:hover {
+
+      transform:
+        translateY(-5px);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+
+    .action-icon {
+
+      width: 52px;
+      height: 52px;
+
+      border-radius: 15px;
+
+      display: grid;
+      place-items: center;
+
+      background:
+        var(--green-100);
+
+      color:
+        var(--green-700);
+
+      font-size: 24px;
+
+      margin-bottom: 20px;
+    }
+
+
+    .action-card h3 {
+
+      font-size: 18px;
+
+      margin-bottom: 8px;
+    }
+
+    .action-card p {
+
+      color:
+        var(--muted);
+
+      font-size: 13px;
+
+      line-height: 1.6;
+
+      margin-bottom: 20px;
+    }
+
+
+    .card-link {
+
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      color:
+        var(--green-600);
+
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+
+    /* =========================================================
+       STATS
+    ========================================================= */
+
+    .stats-section {
+
+      background:
+        #edf5f0;
+
+      width:
+        100vw;
+
+      margin-left:
+        calc(50% - 50vw);
+    }
+
+
+    .stats-inner {
+
+      width:
+        min(1180px, calc(100% - 32px));
+
+      margin: auto;
+    }
+
+
+    .stats-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(5, 1fr);
+
+      gap: 14px;
+    }
+
+
+    .stat-card {
+
+      background:
+        white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        18px;
+
+      padding: 20px;
+
+      box-shadow:
+        0 8px 25px rgba(7,42,31,.05);
+    }
+
+
+    .stat-card .label {
+
+      color:
+        var(--muted);
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      margin-bottom: 8px;
+    }
+
+
+    .stat-card .value {
+
+      color:
+        var(--green-800);
+
+      font-size: 30px;
+
+      font-weight: 900;
+
+      letter-spacing:
+        -1px;
+    }
+
+
+    .stat-card .dun-name {
+
+      margin-top: 4px;
+
+      color:
+        var(--muted);
+
+      font-size: 11px;
+    }
+
+
+    /* =========================================================
+       INFO
+    ========================================================= */
+
+    .info-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 20px;
+    }
+
+
+    .info-card {
+
+      background:
+        white;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        var(--radius-lg);
+
+      padding: 28px;
+
+      box-shadow:
+        var(--shadow-small);
+    }
+
+
+    .info-card h3 {
+
+      margin-bottom: 15px;
+
+      font-size: 18px;
+    }
+
+
+    .info-list {
+
+      display: grid;
+
+      gap: 13px;
+    }
+
+
+    .info-item {
+
+      display: flex;
+      align-items: flex-start;
+
+      gap: 12px;
+
+      color:
+        #3e5049;
+
+      font-size: 13px;
+
+      line-height: 1.5;
+    }
+
+
+    .info-item b {
+
+      color:
+        var(--green-700);
+    }
+
+
+    /* =========================================================
+       FOOTER
+    ========================================================= */
+
+    footer {
+
+      background:
+        var(--green-950);
+
+      color: white;
+
+      margin-top: 30px;
+    }
+
+
+    .footer-inner {
+
+      width:
+        min(1180px, calc(100% - 32px));
+
+      margin: auto;
+
+      padding:
+        30px 0;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      gap: 20px;
+    }
+
+
+    .footer-brand {
+
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+
+    .footer-copy {
+
+      color:
+        rgba(255,255,255,.45);
+
+      font-size: 11px;
+
+      margin-top: 5px;
+    }
+
+
+    .footer-link {
+
+      color:
+        rgba(255,255,255,.65);
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 900px) {
+
+      .hero-inner {
+
+        grid-template-columns:
+          1fr;
+
+        padding:
+          65px 0 55px;
+
+        gap: 35px;
+      }
+
+
+      .hero-card {
+
+        max-width:
+          600px;
+      }
+
+
+      .action-grid {
+
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .stats-grid {
+
+        grid-template-columns:
+          repeat(3, 1fr);
+      }
+
+
+      .info-grid {
+
+        grid-template-columns:
+          1fr;
+      }
+
+    }
+
+
+    @media (max-width: 650px) {
+
+      .nav {
+
+        min-height:
+          64px;
+      }
+
+
+      .nav-links a:not(.nav-login) {
+
+        display: none;
+      }
+
+
+      .brand-logo {
+
+        width: 39px;
+        height: 39px;
+
+        font-size: 20px;
+      }
+
+
+      .brand-text strong {
+
+        font-size: 13px;
+      }
+
+
+      .brand-text span {
+
+        font-size: 9px;
+      }
+
+
+      .hero h1 {
+
+        font-size: 46px;
+
+        letter-spacing:
+          -2px;
+      }
+
+
+      .hero-description {
+
+        font-size: 14px;
+      }
+
+
+      .hero-actions {
+
+        display: grid;
+
+        grid-template-columns:
+          1fr;
+
+        width: 100%;
+      }
+
+
+      .btn {
+
+        width: 100%;
+      }
+
+
+      .action-grid {
+
+        grid-template-columns:
+          1fr;
+      }
+
+
+      .stats-grid {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+
+      .section {
+
+        padding:
+          55px 0;
+      }
+
+
+      .footer-inner {
+
+        flex-direction:
+          column;
+
+        align-items:
+          flex-start;
+      }
+
+    }
+
+
+    @media (max-width: 390px) {
+
+      .hero h1 {
+
+        font-size: 40px;
+      }
+
+
+      .stats-grid {
+
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .stat-card .value {
+
+        font-size: 25px;
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+
+  <!-- =======================================================
+       HEADER
+  ======================================================== -->
+
+  <header>
+
+    <nav class="nav">
+
+      <a href="index.html" class="brand">
+
+        <div class="brand-logo">
+          🥾
+        </div>
+
+        <div class="brand-text">
+
+          <strong>
+            BRISK WALK 2026
+          </strong>
+
+          <span>
+            TANGGA BATU
+          </span>
+
+        </div>
+
+      </a>
+
+
+      <div class="nav-links">
+
+        <a href="search.html">
+          Semak Peserta
+        </a>
+
+        <a href="dashboard.html">
+          Dashboard
+        </a>
+
+        <a href="login.html" class="nav-login">
+          🔐 Login
+        </a>
+
+      </div>
+
+    </nav>
+
+  </header>
+
+
+
+  <!-- =======================================================
+       HERO
+  ======================================================== -->
+
+  <section class="hero">
+
+    <div class="hero-inner">
+
+
+      <div>
+
+        <div class="eyebrow">
+
+          <span class="live-dot"></span>
+
+          SISTEM PENDAFTARAN & PENGURUSAN
+
+        </div>
+
+
+        <h1>
+
+          BRISK WALK
+          <span>2026</span>
+
+        </h1>
+
+
+        <p class="hero-description">
+
+          Selamat datang ke sistem rasmi Brisk Walk 2026.
+          Daftar peserta, semak maklumat pendaftaran dan
+          pantau statistik peserta secara langsung.
+
+        </p>
+
+
+        <div class="hero-actions">
+
+          <a
+            href="register.html"
+            class="btn btn-primary"
+          >
+            📝 Daftar Sekarang
+          </a>
+
+
+          <a
+            href="search.html"
+            class="btn btn-secondary"
+          >
+            🔎 Semak Pendaftaran
+          </a>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- HERO LIVE CARD -->
+
+      <div class="hero-card">
+
+        <div class="hero-card-top">
+
+          <div class="hero-card-title">
+            LIVE REGISTRATION
+          </div>
+
+          <div class="api-status">
+
+            <span
+              id="statusDot"
+              class="status-dot"
+            ></span>
+
+            <span id="apiStatus">
+              CHECKING...
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="heroTotal"
+          class="hero-number"
+        >
+          —
+        </div>
+
+
+        <div class="hero-number-label">
+
+          Jumlah peserta berdaftar
+
+        </div>
+
+
+        <div class="mini-progress">
+
+          <span id="progressBar"></span>
+
+        </div>
+
+
+        <div class="hero-card-footer">
+
+          <span>
+            Sasaran: 1,500 peserta
+          </span>
+
+          <span id="progressText">
+            —
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =======================================================
+       MAIN
+  ======================================================== -->
+
+  <main>
+
+
+    <!-- =====================================================
+         QUICK ACTIONS
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="section-heading">
+
+        <small>
+          Akses pantas
+        </small>
+
+        <h2>
+          Apa yang anda mahu lakukan?
+        </h2>
+
+        <p>
+          Pilih fungsi yang diperlukan untuk meneruskan.
+        </p>
+
+      </div>
+
+
+      <div class="action-grid">
+
+
+        <!-- DAFTAR -->
+
+        <a
+          href="register.html"
+          class="action-card"
+        >
+
+          <div class="action-icon">
+            📝
+          </div>
+
+          <h3>
+            Pendaftaran
+          </h3>
+
+          <p>
+            Daftar peserta baharu dan dapatkan
+            nombor siri serta kaunter secara automatik.
+          </p>
+
+          <span class="card-link">
+            Mula Daftar →
+          </span>
+
+        </a>
+
+
+
+        <!-- SEARCH -->
+
+        <a
+          href="search.html"
+          class="action-card"
+        >
+
+          <div class="action-icon">
+            🔎
+          </div>
+
+          <h3>
+            Semak Peserta
+          </h3>
+
+          <p>
+            Cari peserta menggunakan nama,
+            nombor telefon atau nombor siri.
+          </p>
+
+          <span class="card-link">
+            Semak Sekarang →
+          </span>
+
+        </a>
+
+
+
+        <!-- DASHBOARD -->
+
+        <a
+          href="dashboard.html"
+          class="action-card"
+        >
+
+          <div class="action-icon">
+            📊
+          </div>
+
+          <h3>
+            Live Dashboard
+          </h3>
+
+          <p>
+            Lihat jumlah peserta dan statistik
+            pendaftaran mengikut DUN secara langsung.
+          </p>
+
+          <span class="card-link">
+            Buka Dashboard →
+          </span>
+
+        </a>
+
+
+
+        <!-- LOGIN -->
+
+        <a
+          href="login.html"
+          class="action-card"
+        >
+
+          <div class="action-icon">
+            🔐
+          </div>
+
+          <h3>
+            Urusetia / Admin
+          </h3>
+
+          <p>
+            Akses sistem pengurusan peserta,
+            kaunter dan fungsi pentadbiran.
+          </p>
+
+          <span class="card-link">
+            Login Sistem →
+          </span>
+
+        </a>
+
+
+
+        <!-- INFO -->
+
+        <div class="action-card">
+
+          <div class="action-icon">
+            🚶
+          </div>
+
+          <h3>
+            Brisk Walk 2026
+          </h3>
+
+          <p>
+            Program berjalan santai yang menggalakkan
+            gaya hidup aktif dan penyertaan komuniti.
+          </p>
+
+          <span
+            class="card-link"
+            style="cursor:default"
+          >
+            Tangga Batu
+          </span>
+
+        </div>
+
+
+
+        <!-- SYSTEM -->
+
+        <div class="action-card">
+
+          <div class="action-icon">
+            ⚡
+          </div>
+
+          <h3>
+            Sistem Live
+          </h3>
+
+          <p>
+            Data pendaftaran disimpan terus ke sistem
+            pusat dan dikemaskini secara masa nyata.
+          </p>
+
+          <span
+            class="card-link"
+            id="systemLink"
+          >
+            Memeriksa sistem...
+          </span>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         LIVE STATS
+    ====================================================== -->
+
+    <section class="section stats-section">
+
+      <div class="stats-inner">
+
+        <div class="section-heading">
+
+          <small>
+            Live Statistics
+          </small>
+
+          <h2>
+            Statistik Pendaftaran
+          </h2>
+
+          <p>
+            Jumlah peserta mengikut DUN.
+          </p>
+
+        </div>
+
+
+        <div
+          id="statsGrid"
+          class="stats-grid"
+        >
+
+          <div class="stat-card">
+
+            <div class="label">
+              JUMLAH PESERTA
+            </div>
+
+            <div
+              class="value"
+              id="statTotal"
+            >
+              —
+            </div>
+
+            <div class="dun-name">
+              Semua DUN
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="label">
+              N.11
+            </div>
+
+            <div
+              class="value"
+              id="statN11"
+            >
+              —
+            </div>
+
+            <div class="dun-name">
+              Sungai Udang
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="label">
+              N.12
+            </div>
+
+            <div
+              class="value"
+              id="statN12"
+            >
+              —
+            </div>
+
+            <div class="dun-name">
+              Pantai Kundor
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="label">
+              N.13
+            </div>
+
+            <div
+              class="value"
+              id="statN13"
+            >
+              —
+            </div>
+
+            <div class="dun-name">
+              Paya Rumput
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="label">
+              N.14
+            </div>
+
+            <div
+              class="value"
+              id="statN14"
+            >
+              —
+            </div>
+
+            <div class="dun-name">
+              Kelebang
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         INFO
+    ====================================================== -->
+
+    <section class="section">
+
+      <div class="info-grid">
+
+
+        <div class="info-card">
+
+          <h3>
+            📌 Cara Menggunakan Sistem
+          </h3>
+
+          <div class="info-list">
+
+            <div class="info-item">
+              <span>1️⃣</span>
+              <span>
+                Pilih <b>Pendaftaran</b> untuk
+                mendaftarkan peserta baharu.
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>2️⃣</span>
+              <span>
+                Selepas daftar, peserta akan menerima
+                <b>No. Siri</b> dan <b>Kaunter</b>.
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>3️⃣</span>
+              <span>
+                Gunakan <b>Semak Peserta</b> untuk
+                mendapatkan semula maklumat pendaftaran.
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>4️⃣</span>
+              <span>
+                Urusetia menggunakan menu
+                <b>Login</b> untuk proses check-in.
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="info-card">
+
+          <h3>
+            🏃 Sistem Brisk Walk 2026
+          </h3>
+
+          <div class="info-list">
+
+            <div class="info-item">
+              <span>📍</span>
+              <span>
+                <b>Lokasi:</b> Tangga Batu
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>👥</span>
+              <span>
+                Sistem menyokong pendaftaran peserta
+                merentasi empat DUN.
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>🔢</span>
+              <span>
+                Nombor siri peserta dijana secara
+                automatik oleh sistem.
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span>⚡</span>
+              <span>
+                Status dan statistik dipaparkan
+                berdasarkan data sistem semasa.
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =======================================================
+       FOOTER
+  ======================================================== -->
+
+  <footer>
+
+    <div class="footer-inner">
+
+      <div>
+
+        <div class="footer-brand">
+          BRISK WALK 2026
+        </div>
+
+        <div class="footer-copy">
+          Sistem Pendaftaran & Pengurusan Peserta
+        </div>
+
+      </div>
+
+
+      <a
+        href="login.html"
+        class="footer-link"
+      >
+        🔐 Urusetia / Admin Login
+      </a>
+
+    </div>
+
+  </footer>
+
+
+
+  <!-- =======================================================
+       JAVASCRIPT
+  ======================================================== -->
+
+  <script>
+
+    /* =======================================================
+       APPS SCRIPT API
+    ======================================================== */
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+
+
+    const TARGET =
+      1500;
+
+
+
+    /* =======================================================
+       JSONP HELPER
+    ======================================================== */
+
+    function apiJSONP(page, params = {}) {
+
+      return new Promise((resolve, reject) => {
+
+        const callbackName =
+          "briskApi_" +
+          Date.now() +
+          "_" +
+          Math.floor(Math.random() * 100000);
+
+
+        const script =
+          document.createElement("script");
+
+
+        const query =
+          new URLSearchParams({
+
+            page: page,
+
+            callback: callbackName,
+
+            ...params
+
+          });
+
+
+        const timeout =
+          setTimeout(() => {
+
+            cleanup();
+
+            reject(
+              new Error("API timeout")
+            );
+
+          }, 12000);
+
+
+        function cleanup() {
+
+          clearTimeout(timeout);
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+          try {
+            delete window[callbackName];
+          } catch (e) {
+            window[callbackName] = undefined;
+          }
+
+        }
+
+
+        window[callbackName] =
+          function(data) {
+
+            cleanup();
+
+            resolve(data);
+
+          };
+
+
+        script.onerror =
+          function() {
+
+            cleanup();
+
+            reject(
+              new Error("API connection failed")
+            );
+
+          };
+
+
+        script.src =
+          API_URL +
+          "?" +
+          query.toString();
+
+
+        document.body.appendChild(script);
+
+      });
+
+    }
+
+
+
+    /* =======================================================
+       FORMAT NUMBER
+    ======================================================== */
+
+    function formatNumber(value) {
+
+      const number =
+        Number(value || 0);
+
+      return number.toLocaleString("ms-MY");
+
+    }
+
+
+
+    /* =======================================================
+       API STATUS
+    ======================================================== */
+
+    async function checkAPI() {
+
+      const status =
+        document.getElementById("apiStatus");
+
+      const dot =
+        document.getElementById("statusDot");
+
+      const systemLink =
+        document.getElementById("systemLink");
+
+
+      try {
+
+        const result =
+          await apiJSONP("api_ping");
+
+
+        if (
+          result &&
+          result.success
+        ) {
+
+          status.textContent =
+            "SYSTEM LIVE";
+
+          dot.classList.remove(
+            "offline"
+          );
+
+          systemLink.textContent =
+            "✓ Backend online";
+
+        } else {
+
+          throw new Error(
+            "API offline"
+          );
+
+        }
+
+      } catch (error) {
+
+        status.textContent =
+          "OFFLINE";
+
+        dot.classList.add(
+          "offline"
+        );
+
+        systemLink.textContent =
+          "⚠ Backend tidak dapat dicapai";
+
+      }
+
+    }
+
+
+
+    /* =======================================================
+       LOAD DUN STATS
+    ======================================================== */
+
+    async function loadStats() {
+
+      try {
+
+        const result =
+          await apiJSONP(
+            "api_dun_stats"
+          );
+
+
+        if (
+          !result ||
+          result.success === false
+        ) {
+
+          throw new Error(
+            result?.message ||
+            "Gagal mendapatkan statistik"
+          );
+
+        }
+
+
+        const total =
+          Number(result.total || 0);
+
+
+        /* -----------------------------------------------
+           TOTAL
+        ------------------------------------------------ */
+
+        document.getElementById(
+          "statTotal"
+        ).textContent =
+          formatNumber(total);
+
+
+        document.getElementById(
+          "heroTotal"
+        ).textContent =
+          formatNumber(total);
+
+
+        /* -----------------------------------------------
+           PROGRESS
+        ------------------------------------------------ */
+
+        const percentage =
+          Math.min(
+            100,
+            (total / TARGET) * 100
+          );
+
+
+        document.getElementById(
+          "progressBar"
+        ).style.width =
+          percentage + "%";
+
+
+        document.getElementById(
+          "progressText"
+        ).textContent =
+          percentage.toFixed(1) + "%";
+
+
+        /* -----------------------------------------------
+           DUN
+        ------------------------------------------------ */
+
+        const dunData =
+          Array.isArray(result.dun)
+            ? result.dun
+            : [];
+
+
+        dunData.forEach(item => {
+
+          const dun =
+            String(item.dun || "")
+              .trim()
+              .toUpperCase();
+
+
+          const count =
+            Number(item.count || 0);
+
+
+          if (dun === "N.11") {
+
+            document.getElementById(
+              "statN11"
+            ).textContent =
+              formatNumber(count);
+
+          }
+
+
+          if (dun === "N.12") {
+
+            document.getElementById(
+              "statN12"
+            ).textContent =
+              formatNumber(count);
+
+          }
+
+
+          if (dun === "N.13") {
+
+            document.getElementById(
+              "statN13"
+            ).textContent =
+              formatNumber(count);
+
+          }
+
+
+          if (dun === "N.14") {
+
+            document.getElementById(
+              "statN14"
+            ).textContent =
+              formatNumber(count);
+
+          }
+
+        });
+
+
+      } catch (error) {
+
+        console.error(
+          "Stats error:",
+          error
+        );
+
+        document.getElementById(
+          "statTotal"
+        ).textContent =
+          "—";
+
+        document.getElementById(
+          "heroTotal"
+        ).textContent =
+          "—";
+
+      }
+
+    }
+
+
+
+    /* =======================================================
+       START
+    ======================================================== */
+
+    async function init() {
+
+      await checkAPI();
+
+      await loadStats();
+
+    }
+
+
+    init();
+
+
+    /* =======================================================
+       AUTO REFRESH
+       30 SAAT
+    ======================================================== */
+
+    setInterval(
+      loadStats,
+      30000
+    );
+
+  </script>
+
+</body>
+</html>
