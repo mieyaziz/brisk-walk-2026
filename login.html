@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brisk Walk 2026 — Login</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+:root{
+  --bg:#07111f;
+  --panel:rgba(15,27,45,.88);
+  --line:rgba(255,255,255,.10);
+  --text:#f4f8ff;
+  --muted:#9fb0c7;
+  --accent:#39d98a;
+  --accent2:#35a7ff;
+  --danger:#ff647c;
+  --shadow:0 24px 70px rgba(0,0,0,.38);
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(53,167,255,.16),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 85% 85%,
+      rgba(57,217,138,.13),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      #06101d,
+      #0a1728 55%,
+      #07111f
+    );
+}
+
+.wrap{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.shell{
+  width:min(980px,100%);
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:22px;
+}
+
+.brand,
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(18px);
+}
+
+.brand{
+  padding:42px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:590px;
+}
+
+.logo{
+  width:76px;
+  height:76px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent2),
+      var(--accent)
+    );
+
+  color:#06111d;
+  font-size:34px;
+  font-weight:900;
+
+  box-shadow:
+    0 15px 40px rgba(53,167,255,.22);
+}
+
+.eyebrow{
+  margin-top:28px;
+  color:var(--accent);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:2px;
+}
+
+h1{
+  font-size:42px;
+  line-height:1.05;
+  margin:10px 0 14px;
+}
+
+.brand p{
+  color:var(--muted);
+  line-height:1.7;
+  max-width:470px;
+}
+
+.features{
+  display:grid;
+  gap:12px;
+  margin-top:25px;
+}
+
+.feature{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  color:#dbe7f7;
+  font-size:14px;
+}
+
+.dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--accent);
+
+  box-shadow:
+    0 0 14px rgba(57,217,138,.7);
+}
+
+.card{
+  padding:34px;
+  min-height:590px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.card h2{
+  margin:0 0 7px;
+  font-size:28px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:14px;
+  margin:0 0 25px;
+}
+
+label{
+  display:block;
+  font-size:12px;
+  font-weight:800;
+  color:#b9c8da;
+  margin:17px 0 8px;
+}
+
+select,
+input{
+  width:100%;
+  height:50px;
+
+  border-radius:14px;
+  border:1px solid var(--line);
+
+  background:#091625;
+  color:var(--text);
+
+  padding:0 14px;
+
+  outline:none;
+  font-size:14px;
+}
+
+select:focus,
+input:focus{
+  border-color:rgba(53,167,255,.7);
+
+  box-shadow:
+    0 0 0 3px rgba(53,167,255,.10);
+}
+
+.password{
+  position:relative;
+}
+
+.password input{
+  padding-right:50px;
+}
+
+.eye{
+  position:absolute;
+  right:7px;
+  top:7px;
+
+  width:38px;
+  height:36px;
+
+  border:0;
+  background:transparent;
+  color:#a9bad0;
+
+  cursor:pointer;
+  border-radius:10px;
+}
+
+.eye:hover{
+  background:rgba(255,255,255,.06);
+}
+
+.btn{
+  width:100%;
+  height:51px;
+
+  border:0;
+  border-radius:14px;
+
+  margin-top:24px;
+
+  cursor:pointer;
+
+  font-weight:900;
+  font-size:14px;
+
+  color:#06111d;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent2),
+      var(--accent)
+    );
+
+  box-shadow:
+    0 12px 28px rgba(53,167,255,.18);
+}
+
+.btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* =========================
+   HOME BUTTON
+   ========================= */
+
+.home{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  width:100%;
+  height:48px;
+
+  margin-top:12px;
+
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.13);
+
+  background:rgba(255,255,255,.045);
+
+  color:#dce8f7;
+
+  text-decoration:none;
+
+  font-weight:800;
+  font-size:14px;
+
+  transition:.2s;
+}
+
+.home:hover{
+  background:rgba(255,255,255,.08);
+  transform:translateY(-1px);
+}
+
+.status{
+  min-height:20px;
+  margin-top:14px;
+
+  text-align:center;
+
+  font-size:13px;
+  color:var(--muted);
+}
+
+.footer{
+  text-align:center;
+  color:#70829a;
+  font-size:11px;
+  margin-top:24px;
+}
+
+.badge{
+  display:inline-flex;
+
+  width:max-content;
+
+  padding:6px 9px;
+
+  border-radius:999px;
+
+  background:rgba(57,217,138,.10);
+
+  color:var(--accent);
+
+  font-size:10px;
+  font-weight:900;
+
+  margin-top:14px;
+}
+
+@media(max-width:760px){
+
+  .shell{
+    grid-template-columns:1fr;
+  }
+
+  .brand{
+    display:none;
+  }
+
+  .card{
+    min-height:auto;
+    padding:27px;
+  }
+
+  .wrap{
+    padding:14px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <main class="shell">
+
+    <!-- =========================
+         LEFT BRAND PANEL
+         ========================= -->
+
+    <section class="brand">
+
+      <div class="logo">
+        BW
+      </div>
+
+      <div class="eyebrow">
+        BRISK WALK 2026
+      </div>
+
+      <h1>
+        Operations<br>
+        Login
+      </h1>
+
+      <p>
+        Log masuk untuk mengurus operasi pendaftaran,
+        peserta dan kaunter Brisk Walk 2026.
+      </p>
+
+      <div class="badge">
+        ● SYSTEM ONLINE
+      </div>
+
+      <div class="features">
+
+        <div class="feature">
+          <span class="dot"></span>
+          Admin — akses pengurusan sistem
+        </div>
+
+        <div class="feature">
+          <span class="dot"></span>
+          Urusetia — akses mengikut kaunter
+        </div>
+
+        <div class="feature">
+          <span class="dot"></span>
+          Keselamatan disahkan melalui server
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         LOGIN PANEL
+         ========================= -->
+
+    <section class="card">
+
+      <h2>
+        Log Masuk
+      </h2>
+
+      <p class="sub">
+        Sila pilih peranan dan masukkan maklumat akses.
+      </p>
+
+
+      <!-- ROLE -->
+
+      <label for="role">
+        PERANAN
+      </label>
+
+      <select
+        id="role"
+        onchange="roleChanged()"
+      >
+
+        <option value="Admin">
+          Admin
+        </option>
+
+        <option value="Urusetia">
+          Urusetia
+        </option>
+
+      </select>
+
+
+      <!-- COUNTER -->
+
+      <div
+        id="counterWrap"
+        style="display:none"
+      >
+
+        <label for="counter">
+          KAUNTER
+        </label>
+
+        <select id="counter"></select>
+
+      </div>
+
+
+      <!-- PASSWORD -->
+
+      <label for="password">
+        KATA LALUAN
+      </label>
+
+      <div class="password">
+
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Masukkan kata laluan"
+          onkeydown="if(event.key==='Enter')login()"
+        >
+
+        <button
+          class="eye"
+          type="button"
+          onclick="togglePassword()"
+          aria-label="Lihat kata laluan"
+        >
+          👁
+        </button>
+
+      </div>
+
+
+      <!-- LOGIN -->
+
+      <button
+        class="btn"
+        id="loginBtn"
+        onclick="login()"
+      >
+        🔐 LOG MASUK
+      </button>
+
+
+      <!-- =========================
+           HOME BUTTON
+           ========================= -->
+
+      <a
+        class="home"
+        href="index.html"
+      >
+        🏠 KEMBALI KE HOME
+      </a>
+
+
+      <div
+        class="status"
+        id="status"
+      ></div>
+
+
+      <div class="footer">
+        Brisk Walk 2026 • Registration & Management System
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   APPS SCRIPT API
+   ========================================================= */
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+
+const TOKEN_KEY =
+"BRISK_AUTH_TOKEN";
+
+
+/* =========================================================
+   COUNTER LIST
+   ========================================================= */
+
+const counterSelect =
+document.getElementById("counter");
+
+for(let i=1;i<=16;i++){
+
+  const option =
+  document.createElement("option");
+
+  option.value=i;
+
+  option.textContent =
+  "KAUNTER " + i;
+
+  counterSelect.appendChild(option);
+
+}
+
+
+/* =========================================================
+   ROLE CHANGE
+   ========================================================= */
+
+function roleChanged(){
+
+  const role =
+  document.getElementById("role").value;
+
+  document.getElementById("counterWrap").style.display =
+    role === "Urusetia"
+      ? "block"
+      : "none";
+}
+
+
+/* =========================================================
+   SHOW / HIDE PASSWORD
+   ========================================================= */
+
+function togglePassword(){
+
+  const input =
+  document.getElementById("password");
+
+  input.type =
+    input.type === "password"
+      ? "text"
+      : "password";
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function setStatus(
+  message,
+  type=""
+){
+
+  const el =
+  document.getElementById("status");
+
+  el.textContent =
+  message || "";
+
+  if(type === "error"){
+
+    el.style.color =
+    "#ff8195";
+
+  }else if(type === "ok"){
+
+    el.style.color =
+    "#55e59b";
+
+  }else{
+
+    el.style.color =
+    "#9fb0c7";
+
+  }
+
+}
+
+
+/* =========================================================
+   JSONP API
+   ========================================================= */
+
+function apiJSONP(
+  page,
+  params={}
+){
+
+  return new Promise(
+    (resolve,reject)=>{
+
+      const callbackName =
+        "bwLogin_" +
+        Date.now() +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2);
+
+      const script =
+        document.createElement("script");
+
+      const query =
+        new URLSearchParams({
+
+          page,
+
+          ...params,
+
+          callback:
+          callbackName
+
+        });
+
+
+      const timer =
+        setTimeout(()=>{
+
+          cleanup();
+
+          reject(
+            new Error(
+              "API timeout"
+            )
+          );
+
+        },15000);
+
+
+      function cleanup(){
+
+        clearTimeout(timer);
+
+        delete window[
+          callbackName
+        ];
+
+        script.remove();
+      }
+
+
+      window[
+        callbackName
+      ] = function(data){
+
+        cleanup();
+
+        resolve(data);
+
+      };
+
+
+      script.onerror =
+      function(){
+
+        cleanup();
+
+        reject(
+          new Error(
+            "Tidak dapat menghubungi server."
+          )
+        );
+
+      };
+
+
+      script.src =
+        API_URL +
+        "?" +
+        query.toString();
+
+      document.body.appendChild(
+        script
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+async function login(){
+
+  const btn =
+  document.getElementById(
+    "loginBtn"
+  );
+
+  const role =
+  document.getElementById(
+    "role"
+  ).value;
+
+  const counter =
+  document.getElementById(
+    "counter"
+  ).value;
+
+  const password =
+  document.getElementById(
+    "password"
+  ).value;
+
+
+  if(!password){
+
+    setStatus(
+      "Sila masukkan kata laluan.",
+      "error"
+    );
+
+    document.getElementById(
+      "password"
+    ).focus();
+
+    return;
+  }
+
+
+  btn.disabled =
+  true;
+
+  btn.textContent =
+  "⏳ LOG MASUK...";
+
+
+  setStatus(
+    "Mengesahkan akses..."
+  );
+
+
+  try{
+
+    const data =
+    await apiJSONP(
+      "api_login",
+      {
+
+        role,
+
+        counter:
+          role === "Urusetia"
+            ? counter
+            : "",
+
+        password
+
+      }
+    );
+
+
+    if(
+      !data ||
+      !data.success
+    ){
+
+      throw new Error(
+        data?.message ||
+        "Log masuk gagal."
+      );
+
+    }
+
+
+    const token =
+      data.authToken ||
+      data.token ||
+      "";
+
+
+    if(!token){
+
+      throw new Error(
+        "Token sesi tidak diterima daripada server."
+      );
+
+    }
+
+
+    /* SAVE SESSION */
+
+    sessionStorage.setItem(
+      TOKEN_KEY,
+      token
+    );
+
+    localStorage.setItem(
+      TOKEN_KEY,
+      token
+    );
+
+
+    setStatus(
+      "Log masuk berjaya. Membuka sistem...",
+      "ok"
+    );
+
+
+    /* ROUTING */
+
+    setTimeout(()=>{
+
+      if(role === "Admin"){
+
+        window.location.href =
+        "dashboard.html";
+
+      }else{
+
+        window.location.href =
+        "search.html";
+
+      }
+
+    },450);
+
+
+  }catch(error){
+
+    console.error(error);
+
+
+    setStatus(
+      error.message ||
+      "Log masuk gagal.",
+      "error"
+    );
+
+
+    btn.disabled =
+    false;
+
+    btn.textContent =
+    "🔐 LOG MASUK";
+
+  }
+
+}
+
+
+/* =========================================================
+   INITIAL
+   ========================================================= */
+
+roleChanged();
+
+</script>
+
+</body>
+</html>
