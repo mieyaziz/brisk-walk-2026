@@ -189,7 +189,9 @@ async function loadDashboard(){
     document.getElementById("pending").textContent=pending.toLocaleString("ms-MY");
     document.getElementById("percent").textContent=pct.toFixed(1)+"%";
 
-    let stats=d.dunStats||d.duns||d.stats||[];
+    // Backend getDashboardData() returns the DUN breakdown in `dun`.
+    // Keep compatibility with older response names as well.
+    let stats=d.dun||d.dunStats||d.duns||d.stats||[];
     if(!Array.isArray(stats) && stats && typeof stats==="object"){
       stats=Object.entries(stats).map(([dun,value])=>({dun,count:value}));
     }
