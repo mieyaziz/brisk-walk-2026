@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brisk Walk 2026 — Dashboard</title>
+<style>
+*{box-sizing:border-box}
+:root{
+ --bg:#07111f;--panel:rgba(15,27,45,.88);--panel2:rgba(20,36,58,.82);
+ --line:rgba(255,255,255,.09);--text:#f4f8ff;--muted:#9fb0c7;
+ --green:#39d98a;--blue:#35a7ff;--orange:#ffb454;--red:#ff647c;
+}
+body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);
+background:radial-gradient(circle at 10% 5%,rgba(53,167,255,.13),transparent 30%),radial-gradient(circle at 90% 90%,rgba(57,217,138,.10),transparent 30%),linear-gradient(135deg,#06101d,#0a1728 55%,#07111f)}
+a{text-decoration:none;color:inherit}
+.container{width:min(1200px,100%);margin:auto;padding:22px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--green));color:#06111d;font-weight:950;font-size:21px}
+.eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--green);font-weight:900}
+.title{font-size:25px;font-weight:900;margin-top:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{height:42px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:#e5effc;font-weight:800;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.09)}
+.btn.primary{background:linear-gradient(135deg,var(--blue),var(--green));color:#06111d;border:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.25);backdrop-filter:blur(16px)}
+.hero{padding:25px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.hero h1{margin:0 0 6px;font-size:30px}
+.hero p{margin:0;color:var(--muted);font-size:13px}
+.live{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--green);font-weight:900;white-space:nowrap}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 15px var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{50%{opacity:.35;transform:scale(.75)}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat{padding:21px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
+.stat .label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.stat .value{font-size:31px;font-weight:950;margin-top:8px}
+.stat .small{font-size:11px;color:var(--muted);margin-top:5px}
+.green{color:var(--green)}.blue{color:var(--blue)}.orange{color:var(--orange)}.red{color:var(--red)}
+.section{padding:22px;margin-bottom:18px}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}
+.section h2{font-size:18px;margin:0}
+.updated{font-size:11px;color:var(--muted)}
+.duns{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.dun{padding:18px;border-radius:18px;background:rgba(7,17,31,.55);border:1px solid var(--line)}
+.dunhead{display:flex;justify-content:space-between;gap:8px}
+.dunname{font-weight:900;font-size:14px}.duncode{font-size:10px;color:var(--muted)}
+.count{font-size:27px;font-weight:950;margin:14px 0 3px}
+.meta{font-size:11px;color:var(--muted)}
+.bar{height:8px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-top:13px}
+.fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--green));width:0;transition:width .5s}
+.operations{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.op{padding:18px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.035);transition:.2s}
+.op:hover{transform:translateY(-2px);background:rgba(255,255,255,.065)}
+.opicon{font-size:23px}.optitle{font-weight:900;margin-top:9px}.opdesc{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5}
+.footer{text-align:center;color:#70829a;font-size:11px;padding:10px 0 20px}
+.error{color:var(--red);font-size:12px}
+@media(max-width:850px){.stats,.duns{grid-template-columns:repeat(2,1fr)}.operations{grid-template-columns:repeat(2,1fr)}.hero{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.container{padding:13px}.top{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.stats,.duns,.operations{grid-template-columns:1fr}.hero h1{font-size:25px}.stat .value{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">BW</div>
+    <div>
+      <div class="eyebrow">BRISK WALK 2026</div>
+      <div class="title">Operations Dashboard</div>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="index.html">🏠 HOME</a>
+    <a class="btn" href="search.html">🔎 CARI PESERTA</a>
+    <a class="btn" href="login.html" onclick="logout()">↩ LOGOUT</a>
+  </div>
+</header>
+
+<section class="panel hero">
+  <div>
+    <h1>Dashboard Operasi</h1>
+    <p>Ringkasan peserta, pendaftaran dan check-in Brisk Walk 2026 secara langsung.</p>
+  </div>
+  <div class="live"><i></i> LIVE • AUTO REFRESH 10s</div>
+</section>
+
+<section class="stats">
+  <div class="stat"><div class="label">Jumlah Peserta</div><div class="value blue" id="total">—</div><div class="small">Semua DUN</div></div>
+  <div class="stat"><div class="label">Sudah Check-in</div><div class="value green" id="checked">—</div><div class="small">Peserta hadir</div></div>
+  <div class="stat"><div class="label">Belum Check-in</div><div class="value orange" id="pending">—</div><div class="small">Masih belum hadir</div></div>
+  <div class="stat"><div class="label">Kadar Check-in</div><div class="value green" id="percent">—</div><div class="small">Daripada jumlah peserta</div></div>
+</section>
+
+<section class="panel section">
+  <div class="sectionhead">
+    <h2>📊 Pecahan Mengikut DUN</h2>
+    <div class="updated" id="updated">Mengambil data...</div>
+  </div>
+
+  <div class="duns">
+    <div class="dun">
+      <div class="dunhead"><div class="dunname">Sungai Udang</div><div class="duncode">N.11</div></div>
+      <div class="count" id="dun11">—</div><div class="meta" id="dun11meta">Peserta</div>
+      <div class="bar"><div class="fill" id="bar11"></div></div>
+    </div>
+    <div class="dun">
+      <div class="dunhead"><div class="dunname">Pantai Kundor</div><div class="duncode">N.12</div></div>
+      <div class="count" id="dun12">—</div><div class="meta" id="dun12meta">Peserta</div>
+      <div class="bar"><div class="fill" id="bar12"></div></div>
+    </div>
+    <div class="dun">
+      <div class="dunhead"><div class="dunname">Paya Rumput</div><div class="duncode">N.13</div></div>
+      <div class="count" id="dun13">—</div><div class="meta" id="dun13meta">Peserta</div>
+      <div class="bar"><div class="fill" id="bar13"></div></div>
+    </div>
+    <div class="dun">
+      <div class="dunhead"><div class="dunname">Kelebang</div><div class="duncode">N.14</div></div>
+      <div class="count" id="dun14">—</div><div class="meta" id="dun14meta">Peserta</div>
+      <div class="bar"><div class="fill" id="bar14"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel section">
+  <div class="sectionhead">
+    <h2>⚡ Operasi Pantas</h2>
+  </div>
+  <div class="operations">
+    <a class="op" href="search.html"><div class="opicon">🔎</div><div class="optitle">Carian Peserta</div><div class="opdesc">Cari nama, telefon atau nombor siri dan proses check-in.</div></a>
+    <a class="op" href="participants.html"><div class="opicon">👥</div><div class="optitle">Senarai Peserta</div><div class="opdesc">Lihat senarai peserta mengikut DUN.</div></a>
+    <a class="op" href="printkaunter.html"><div class="opicon">🖨️</div><div class="optitle">Cetak Kaunter</div><div class="opdesc">Akses senarai dan bahan operasi kaunter.</div></a>
+    <a class="op" href="padananklb.html"><div class="opicon">🔗</div><div class="optitle">Padanan KLB</div><div class="opdesc">Semak statistik padanan data Kelebang.</div></a>
+  </div>
+</section>
+
+<div class="footer">
+  Brisk Walk 2026 • Registration & Management System
+</div>
+</div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+const TOKEN_KEY="BRISK_AUTH_TOKEN";
+
+function getToken(){
+  return sessionStorage.getItem(TOKEN_KEY)||localStorage.getItem(TOKEN_KEY)||"";
+}
+
+function apiJSONP(page,params={}){
+  return new Promise((resolve,reject)=>{
+    const cb="bwDash_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    const q=new URLSearchParams({page,...params,callback:cb});
+    const timer=setTimeout(()=>{cleanup();reject(new Error("API timeout"));},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error("Tidak dapat menghubungi server."));};
+    script.src=API_URL+"?"+q.toString();
+    document.body.appendChild(script);
+  });
+}
+
+function num(v){return Number(v)||0}
+
+function findDun(stats,code){
+  if(!Array.isArray(stats)) return null;
+  return stats.find(x=>{
+    const s=String(x.dun||x.DUN||x.name||"").toUpperCase();
+    return s.startsWith(code);
+  })||null;
+}
+
+async function loadDashboard(){
+  try{
+    const token=getToken();
+    const data=await apiJSONP("api_dashboard",{token});
+
+    if(!data || !data.success) throw new Error(data?.message||"Gagal mendapatkan dashboard.");
+
+    const d=data.data||data;
+    const total=num(d.total||d.totalParticipants||d.jumlahPeserta);
+    const checked=num(d.checkedIn||d.totalCheckedIn||d.jumlahCheckIn);
+    const pending=Math.max(0,total-checked);
+    const pct=total?((checked/total)*100):0;
+
+    document.getElementById("total").textContent=total.toLocaleString("ms-MY");
+    document.getElementById("checked").textContent=checked.toLocaleString("ms-MY");
+    document.getElementById("pending").textContent=pending.toLocaleString("ms-MY");
+    document.getElementById("percent").textContent=pct.toFixed(1)+"%";
+
+    let stats=d.dunStats||d.duns||d.stats||[];
+    if(!Array.isArray(stats) && stats && typeof stats==="object"){
+      stats=Object.entries(stats).map(([dun,value])=>({dun,count:value}));
+    }
+
+    const codes=["N.11","N.12","N.13","N.14"];
+    codes.forEach((code,i)=>{
+      const x=findDun(stats,code);
+      const count=num(x?.count??x?.total??x?.jumlah??x?.participants);
+      const check=num(x?.checkedIn??x?.checkin??x?.checked);
+      const suffix=code.replace("N.","");
+      document.getElementById("dun"+suffix).textContent=count.toLocaleString("ms-MY");
+      document.getElementById("dun"+suffix+"meta").textContent=
+        check+" check-in • "+(count?((check/count)*100).toFixed(1):"0.0")+"%";
+      document.getElementById("bar"+suffix).style.width=(total?Math.min(100,count/total*100):0)+"%";
+    });
+
+    document.getElementById("updated").textContent="Dikemas kini "+new Date().toLocaleTimeString("ms-MY");
+  }catch(e){
+    console.error(e);
+    document.getElementById("updated").innerHTML='<span class="error">'+(e.message||"Gagal mendapatkan data")+"</span>";
+  }
+}
+
+function logout(){
+  const token=getToken();
+  if(token){
+    apiJSONP("api_logout",{token}).catch(()=>{});
+  }
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+loadDashboard();
+setInterval(loadDashboard,10000);
+</script>
+</body>
+</html>
