@@ -309,11 +309,22 @@ function apiJSONP(page,params={}){
   });
 }
 
+function redirectToPrintLogin(){
+  const currentParams = new URLSearchParams(window.location.search);
+  const counter = currentParams.get("counter") || "";
+
+  const loginParams = new URLSearchParams();
+  loginParams.set("target","printkaunter");
+  if(counter) loginParams.set("counter",counter);
+
+  window.location.href="login.html?"+loginParams.toString();
+}
+
 async function ensureAuth(){
   const token=getToken();
 
   if(!token){
-    window.location.href="login.html";
+    redirectToPrintLogin();
     return null;
   }
 
@@ -323,7 +334,7 @@ async function ensureAuth(){
     if(!data || !data.success || data.authenticated!==true){
       sessionStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(TOKEN_KEY);
-      window.location.href="login.html";
+      redirectToPrintLogin();
       return null;
     }
 
@@ -540,8 +551,11 @@ function escapeHtml(value){
     const counter=params.get("counter");
 
     if(counter){
-      document.getElementById("counterSelect").value=counter;
-      loadCounter();
+      const normalizedCounter = String(counter).replace(/^KAUNTER\s+/i,"");
+      if(/^\\d+$/.test(normalizedCounter)){
+        document.getElementById("counterSelect").value=normalizedCounter;
+        loadCounter();
+      }
     }
   }
 })();
