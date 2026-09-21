@@ -705,7 +705,7 @@ async function ensureAdmin(){
   if(!token){
 
     window.location.href =
-      "login.html";
+      "login.html?target=participants";
 
     return false;
   }
@@ -720,7 +720,6 @@ async function ensureAdmin(){
 
     if(
       !data ||
-      !data.success ||
       data.authenticated !== true ||
       String(data.role || "").toUpperCase() !== "ADMIN"
     ){
