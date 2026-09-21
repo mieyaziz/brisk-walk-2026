@@ -902,9 +902,12 @@ async function loadParticipants(){
       );
 
 
+    // api_participants backend memulangkan objek data peserta
+    // tanpa property success:true. Error backend sahaja yang
+    // mempunyai success:false.
     if(
       !data ||
-      !data.success
+      data.success === false
     ){
 
       throw new Error(
