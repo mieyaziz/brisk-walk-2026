@@ -1,0 +1,4437 @@
+/****************************************************
+ * BRISK WALK 2026
+ * FASA 1 - PENDAFTARAN
+ *
+ * DATABASE:
+ * Bil SU
+ * Bil PK
+ * Bil PR
+ * Bil KLB
+ *
+ * STRUKTUR:
+ * DUN | NAMA | NOMBOR TELEFON | Timestamp | NO SIRI | KAUNTER | QR URL
+ ****************************************************/
+
+
+const SHEET_MAP = {
+
+  "N.11 SUNGAI UDANG": {
+    sheetName: "Bil SU",
+    shortName: "N.11 SU"
+  },
+
+  "N.12 PANTAI KUNDOR": {
+    sheetName: "Bil PK",
+    shortName: "N.12 PK"
+  },
+
+  "N.13 PAYA RUMPUT": {
+    sheetName: "Bil PR",
+    shortName: "N.13 PR"
+  },
+
+  "N.14 KELEBANG": {
+    sheetName: "Bil KLB",
+    shortName: "N.14 KLB"
+  }
+
+};
+
+
+/*
+ * ==========================================
+ * SECURITY CONFIGURATION
+ * ==========================================
+ * Sheet: Security Config
+ * ROLE | KAUNTER | PASSWORD | STATUS
+ * ADMIN | ADMIN | ... | AKTIF
+ * URUSETIA | KAUNTER 1..16 | ... | AKTIF
+ */
+const SECURITY_SHEET_NAME = "Security Config";
+const AUTH_CACHE_PREFIX = "BRISK_AUTH_";
+const AUTH_TTL_SECONDS = 21600; // cache sehingga 6 jam
+const AUTH_SESSION_SHEET_NAME = "Active Sessions";
+const AUTH_SESSION_TTL_HOURS = 12; // sesi sebenar sehingga 12 jam
+
+function setupSecurityConfig() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SECURITY_SHEET_NAME);
+
+  if (!sheet) sheet = ss.insertSheet(SECURITY_SHEET_NAME);
+
+  const headers = ["ROLE", "KAUNTER", "PASSWORD", "STATUS"];
+  const rows = [
+    ["ADMIN", "ADMIN", "TUKAR_PASSWORD_ADMIN", "AKTIF"]
+  ];
+
+  for (let i = 1; i <= 16; i++) {
+    rows.push(["URUSETIA", "KAUNTER " + i, "TUKAR_PASSWORD_K" + i, "AKTIF"]);
+  }
+
+  const current = sheet.getLastRow();
+  if (current === 0) {
+    sheet.getRange(1, 1, 1, 4).setValues([headers]);
+    sheet.getRange(2, 1, rows.length, 4).setValues(rows);
+  } else {
+    const existingHeaders = sheet.getRange(1, 1, 1, 4).getValues()[0];
+    let headerOk = true;
+    headers.forEach((h, i) => { if (String(existingHeaders[i] || "").trim() !== h) headerOk = false; });
+    if (!headerOk) sheet.getRange(1, 1, 1, 4).setValues([headers]);
+    // Jangan overwrite password sedia ada. Tambah hanya baris yang masih tiada.
+    const existingRows = Math.max(0, sheet.getLastRow() - 1);
+    if (existingRows === 0) {
+      sheet.getRange(2, 1, rows.length, 4).setValues(rows);
+    } else if (existingRows < rows.length) {
+      sheet.getRange(existingRows + 2, 1, rows.length - existingRows, 4).setValues(rows.slice(existingRows));
+    }
+  }
+
+  sheet.getRange(1,1,1,4).setFontWeight("bold");
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1,4);
+
+  return {
+    success: true,
+    sheetName: SECURITY_SHEET_NAME,
+    message: 'Security Config siap. Sila tukar semua nilai PASSWORD placeholder kepada password sebenar.'
+  };
+}
+
+function getSecurityRows_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SECURITY_SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) {
+    throw new Error('Sheet "Security Config" belum disediakan. Jalankan setupSecurityConfig() sekali.');
+  }
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, 4).getDisplayValues();
+}
+
+function getOrCreateActiveSessionsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(AUTH_SESSION_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(AUTH_SESSION_SHEET_NAME);
+    sheet.getRange(1, 1, 1, 7).setValues([[
+      "TOKEN HASH",
+      "ROLE",
+      "KAUNTER",
+      "LOGIN TIME",
+      "EXPIRES AT",
+      "LAST SEEN",
+      "STATUS"
+    ]]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight("bold");
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 4, sheet.getMaxRows(), 3).setNumberFormat("dd/MM/yyyy HH:mm:ss");
+  }
+
+  return sheet;
+}
+
+function hashAuthToken_(token) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(token || ""),
+    Utilities.Charset.UTF_8
+  );
+
+  return bytes.map(function(b) {
+    const v = b < 0 ? b + 256 : b;
+    return (v < 16 ? "0" : "") + v.toString(16);
+  }).join("");
+}
+
+function createPersistentAuthSession_(token, role, counter) {
+  const lock = LockService.getScriptLock();
+
+  try {
+    lock.waitLock(10000);
+
+    const sheet = getOrCreateActiveSessionsSheet_();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + AUTH_SESSION_TTL_HOURS * 60 * 60 * 1000);
+    const tokenHash = hashAuthToken_(token);
+
+    sheet.appendRow([
+      tokenHash,
+      role,
+      counter,
+      now,
+      expiresAt,
+      now,
+      "AKTIF"
+    ]);
+
+    return {
+      loginAt: now.toISOString(),
+      expiresAt: expiresAt.toISOString()
+    };
+  } finally {
+    try { lock.releaseLock(); } catch (e) {}
+  }
+}
+
+function getPersistentAuthSession_(token) {
+  const tokenHash = hashAuthToken_(token);
+  if (!tokenHash) return null;
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AUTH_SESSION_SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) return null;
+
+  const lastRow = sheet.getLastRow();
+  const values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+  const now = new Date();
+  let found = null;
+
+  for (let i = values.length - 1; i >= 0; i--) {
+    const row = values[i];
+    if (String(row[0] || "") !== tokenHash) continue;
+
+    const status = String(row[6] || "").trim().toUpperCase();
+    const expiresAt = row[4] instanceof Date ? row[4] : new Date(row[4]);
+
+    if (status !== "AKTIF" || isNaN(expiresAt.getTime()) || expiresAt.getTime() <= now.getTime()) {
+      return null;
+    }
+
+    found = {
+      rowNumber: i + 2,
+      role: String(row[1] || "").trim().toUpperCase(),
+      counter: String(row[2] || "").trim().toUpperCase(),
+      loginAt: row[3] instanceof Date ? row[3].toISOString() : String(row[3] || ""),
+      expiresAt: expiresAt.toISOString()
+    };
+    break;
+  }
+
+  if (found) {
+    try {
+      sheet.getRange(found.rowNumber, 6).setValue(now);
+    } catch (e) {}
+  }
+
+  return found;
+}
+
+function authenticateUser(role, counter, password) {
+  role = String(role || "").trim().toUpperCase();
+  counter = String(counter || "").trim().toUpperCase();
+  password = String(password || "");
+
+  if (!password) throw new Error("Sila masukkan password.");
+  if (role !== "ADMIN" && role !== "URUSETIA") throw new Error("Jenis pengguna tidak sah.");
+
+  const rows = getSecurityRows_();
+  let found = null;
+
+  rows.forEach(function(row) {
+    const r = String(row[0] || "").trim().toUpperCase();
+    const c = String(row[1] || "").trim().toUpperCase();
+    const p = String(row[2] || "");
+    const s = String(row[3] || "").trim().toUpperCase();
+
+    if (r === role && c === counter && s === "AKTIF" && p === password) {
+      found = { role: r, counter: c };
+    }
+  });
+
+  if (!found) throw new Error("Password salah atau akaun tidak aktif.");
+
+  if (String(password).indexOf("TUKAR_PASSWORD_") === 0) {
+    throw new Error("Password masih placeholder. Sila tukar password di Security Config dahulu.");
+  }
+
+  const token = Utilities.getUuid() + Utilities.getUuid().replace(/-/g, "");
+  const session = createPersistentAuthSession_(token, found.role, found.counter);
+
+  // Cache untuk akses pantas. Jika cache hilang, getAuthContext()
+  // akan pulih semula daripada Active Sessions.
+  CacheService.getScriptCache().put(
+    AUTH_CACHE_PREFIX + token,
+    JSON.stringify({
+      role: found.role,
+      counter: found.counter,
+      loginAt: session.loginAt,
+      expiresAt: session.expiresAt
+    }),
+    AUTH_TTL_SECONDS
+  );
+
+  return {
+    success: true,
+    token: token,
+    role: found.role,
+    counter: found.counter,
+    expiresAt: session.expiresAt
+  };
+}
+
+function getAuthContext(authToken) {
+  const token = String(authToken || "").trim();
+  if (!token) return { authenticated: false };
+
+  const cacheKey = AUTH_CACHE_PREFIX + token;
+  const raw = CacheService.getScriptCache().get(cacheKey);
+
+  if (raw) {
+    try {
+      const ctx = JSON.parse(raw);
+      const expiresAt = ctx.expiresAt ? new Date(ctx.expiresAt) : null;
+
+      if (!expiresAt || isNaN(expiresAt.getTime()) || expiresAt.getTime() > Date.now()) {
+        return {
+          authenticated: true,
+          role: String(ctx.role || "").toUpperCase(),
+          counter: String(ctx.counter || "").toUpperCase(),
+          loginAt: ctx.loginAt || "",
+          expiresAt: ctx.expiresAt || ""
+        };
+      }
+
+      CacheService.getScriptCache().remove(cacheKey);
+    } catch (err) {
+      CacheService.getScriptCache().remove(cacheKey);
+    }
+  }
+
+  // Fallback persistent session. Ini menyelesaikan masalah apabila
+  // ScriptCache hilang/evict walaupun token browser masih ada.
+  const session = getPersistentAuthSession_(token);
+  if (!session) return { authenticated: false };
+
+  const restored = {
+    role: session.role,
+    counter: session.counter,
+    loginAt: session.loginAt,
+    expiresAt: session.expiresAt
+  };
+
+  const remainingSeconds = Math.max(60, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000));
+
+  CacheService.getScriptCache().put(
+    cacheKey,
+    JSON.stringify(restored),
+    Math.min(AUTH_TTL_SECONDS, remainingSeconds)
+  );
+
+  return {
+    authenticated: true,
+    role: session.role,
+    counter: session.counter,
+    loginAt: session.loginAt,
+    expiresAt: session.expiresAt
+  };
+}
+
+
+function requireAuth_(authToken, allowedRoles, requiredCounter) {
+  const ctx = getAuthContext(authToken);
+  if (!ctx.authenticated) throw new Error("Sesi login tamat. Sila login semula.");
+
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  const normalizedRoles = roles.map(function(r) { return String(r).toUpperCase(); });
+
+  if (normalizedRoles.indexOf(ctx.role) === -1) {
+    throw new Error("Akses tidak dibenarkan untuk akaun ini.");
+  }
+
+  if (requiredCounter && ctx.role === "URUSETIA") {
+    const wanted = "KAUNTER " + Number(requiredCounter);
+    if (ctx.counter !== wanted) {
+      throw new Error("Akaun Urusetia ini hanya dibenarkan untuk " + wanted + ".");
+    }
+  }
+
+  return ctx;
+}
+
+function requireAdmin_(authToken) {
+  return requireAuth_(authToken, ["ADMIN"]);
+}
+
+function logoutUser(authToken) {
+  const token = String(authToken || "").trim();
+  if (!token) return { success: true };
+
+  CacheService.getScriptCache().remove(AUTH_CACHE_PREFIX + token);
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AUTH_SESSION_SHEET_NAME);
+  if (sheet && sheet.getLastRow() >= 2) {
+    const tokenHash = hashAuthToken_(token);
+    const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 7).getValues();
+
+    for (let i = values.length - 1; i >= 0; i--) {
+      if (String(values[i][0] || "") === tokenHash && String(values[i][6] || "").toUpperCase() === "AKTIF") {
+        sheet.getRange(i + 2, 6).setValue(new Date());
+        sheet.getRange(i + 2, 7).setValue("LOGOUT");
+        break;
+      }
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * ==========================================
+ * OPEN WEB APP
+ * ==========================================
+ */
+function doGet(e) {
+
+  const page =
+    e && e.parameter && e.parameter.page
+      ? String(e.parameter.page).trim()
+      : "master";
+
+  // ==========================================
+  // GITHUB / EXTERNAL FRONTEND API
+  // ==========================================
+  // Semua route api_* diproses sebagai JSON/JSONP
+  // sebelum Apps Script cuba membuka HTML page.
+  // Ini membolehkan frontend GitHub Pages
+  // menggunakan backend Google Apps Script yang sama.
+  if (page.indexOf("api_") === 0) {
+    return handleBriskApiRequest_(e);
+  }
+
+  let fileName = "Master";
+
+  if (page === "register") {
+    fileName = "Index";
+  }
+
+  if (page === "search") {
+    fileName = "Search";
+  }
+
+  if (page === "dashboard") {
+    fileName = "Dashboard";
+  }
+
+  if (page === "participants") {
+    fileName = "Participants";
+  }
+
+  if (page === "printkaunter") {
+    fileName = "PrintKaunter";
+  }
+
+  if (page === "padananklb") {
+    fileName = "PadananKLB";
+  }
+
+  if (page === "login") {
+    fileName = "Login";
+  }
+
+
+  // ==============================
+  // CREATE TEMPLATE
+  // ==============================
+
+  const template =
+    HtmlService.createTemplateFromFile(fileName);
+
+
+  // ==============================
+  // PASS DUN KE PARTICIPANTS
+  // ==============================
+
+  template.targetPage =
+    e && e.parameter && e.parameter.target
+      ? String(e.parameter.target)
+      : "master";
+
+  if (page === "participants" || page === "padananklb") {
+
+    template.dun =
+      e &&
+      e.parameter &&
+      e.parameter.dun
+        ? e.parameter.dun
+        : "";
+
+  } else {
+
+    template.dun = "";
+
+  }
+
+  // ==============================
+  // PASS NO SIRI DARIPADA QR
+  // ==============================
+  template.qrId =
+    e &&
+    e.parameter &&
+    e.parameter.id
+      ? String(e.parameter.id).trim()
+      : "";
+
+
+  return template
+    .evaluate()
+    .setTitle("Brisk Walk 2026")
+    .setXFrameOptionsMode(
+      HtmlService.XFrameOptionsMode.ALLOWALL
+    );
+}
+
+
+/**
+ * ==========================================
+ * GET DUN LIST
+ * ==========================================
+ */
+function getDUNList() {
+
+  return Object.keys(SHEET_MAP);
+
+}
+
+
+/**
+ * ==========================================
+ * GET DATABASE STATISTICS
+ *
+ * BACA SAHAJA
+ * TIDAK UBAH DATA
+ * ==========================================
+ */
+function getDUNStats() {
+
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  const result = [];
+
+  let total = 0;
+
+
+  for (
+    const dun in SHEET_MAP
+  ) {
+
+    const config =
+      SHEET_MAP[dun];
+
+
+    const sheet =
+      ss.getSheetByName(
+        config.sheetName
+      );
+
+
+    let count = 0;
+
+
+    if (sheet) {
+
+      const lastRow =
+        sheet.getLastRow();
+
+
+      /*
+       * Row 1 = Header
+       * Jadi jumlah data = lastRow - 1
+       */
+
+      if (lastRow >= 2) {
+
+        count =
+          lastRow - 1;
+
+      }
+
+    }
+
+
+    total += count;
+
+
+    result.push({
+
+      dun: dun,
+
+      shortName:
+        config.shortName,
+
+      sheetName:
+        config.sheetName,
+
+      count: count
+
+    });
+
+  }
+
+
+  return {
+
+    total: total,
+
+    dun: result
+
+  };
+
+}
+
+
+/**
+ * ==========================================
+ * REGISTER PARTICIPANT
+ *
+ * PENDAFTARAN BARU SAHAJA
+ *
+ * STRUKTUR:
+ * DUN | NAMA | NOMBOR TELEFON | Timestamp | NO SIRI | KAUNTER
+ * ==========================================
+ */
+function registerParticipant(data) {
+
+  const lock = LockService.getScriptLock();
+
+  try {
+
+    /*
+     * LOCK
+     * Elak dua pendaftaran berlaku serentak
+     * dan mendapat No. Siri yang sama.
+     */
+    lock.waitLock(30000);
+
+
+    // ==========================================
+    // VALIDATION
+    // ==========================================
+
+    if (!data) {
+      throw new Error(
+        "Data pendaftaran tidak diterima."
+      );
+    }
+
+
+    const dun =
+      String(data.dun || "").trim();
+
+    const nama =
+      String(data.nama || "").trim();
+
+    const telefon =
+      String(data.telefon || "").trim();
+
+
+    if (!dun) {
+      throw new Error(
+        "Sila pilih DUN."
+      );
+    }
+
+
+    if (!nama) {
+      throw new Error(
+        "Sila masukkan nama penuh."
+      );
+    }
+
+
+    if (!telefon) {
+      throw new Error(
+        "Sila masukkan nombor telefon."
+      );
+    }
+
+
+    if (!SHEET_MAP[dun]) {
+      throw new Error(
+        "DUN tidak sah."
+      );
+    }
+
+
+    // ==========================================
+    // CLEAN DATA
+    // ==========================================
+
+    const namaClean =
+      nama
+        .replace(/\s+/g, " ")
+        .trim()
+        .toUpperCase();
+
+
+    const telefonClean =
+      normalizePhone(telefon);
+
+
+    if (telefonClean.length < 9) {
+      throw new Error(
+        "Nombor telefon tidak sah."
+      );
+    }
+
+
+    // ==========================================
+    // DATABASE
+    // ==========================================
+
+    const ss =
+      SpreadsheetApp
+        .getActiveSpreadsheet();
+
+
+    // ==========================================
+    // CHECK DUPLICATE
+    //
+    // NAMA + TELEFON SAHAJA
+    //
+    // Telefon sama tetapi nama berbeza
+    // masih dibenarkan.
+    // ==========================================
+
+    const duplicate =
+      findSameParticipant(
+        ss,
+        namaClean,
+        telefonClean
+      );
+
+
+    if (duplicate) {
+
+      return {
+        success: false,
+        duplicate: true,
+
+        message:
+          "Nama dan nombor telefon ini telah berdaftar.",
+
+        nama:
+          duplicate.nama,
+
+        dun:
+          duplicate.dun,
+
+        sheetName:
+          duplicate.sheetName
+      };
+
+    }
+
+
+    // ==========================================
+    // TARGET SHEET
+    // ==========================================
+
+    const config =
+      SHEET_MAP[dun];
+
+
+    const sheet =
+      ss.getSheetByName(
+        config.sheetName
+      );
+
+
+    if (!sheet) {
+      throw new Error(
+        "Sheet '" +
+        config.sheetName +
+        "' tidak dijumpai."
+      );
+    }
+
+
+    // ==========================================
+    // TIMESTAMP
+    // ==========================================
+
+    const timestamp =
+      new Date();
+
+
+    // ==========================================
+    // GENERATE NO SIRI
+    //
+    // Cari No. Siri tertinggi daripada
+    // SEMUA 4 MASTER SHEET.
+    //
+    // Contoh:
+    // terakhir = 1500
+    // peserta baru = 1501
+    // ==========================================
+
+    let maxSerial = 0;
+
+
+    for (
+      const dunKey in SHEET_MAP
+    ) {
+
+      const sheetConfig =
+        SHEET_MAP[dunKey];
+
+
+      const masterSheet =
+        ss.getSheetByName(
+          sheetConfig.sheetName
+        );
+
+
+      if (!masterSheet) {
+        continue;
+      }
+
+
+      const lastRow =
+        masterSheet.getLastRow();
+
+
+      if (lastRow < 2) {
+        continue;
+      }
+
+
+      /*
+       * Column E = NO SIRI
+       */
+      const serialValues =
+        masterSheet
+          .getRange(
+            2,
+            5,
+            lastRow - 1,
+            1
+          )
+          .getValues();
+
+
+      for (
+        let i = 0;
+        i < serialValues.length;
+        i++
+      ) {
+
+        const value =
+          Number(
+            serialValues[i][0]
+          );
+
+
+        if (
+          !isNaN(value) &&
+          value > maxSerial
+        ) {
+
+          maxSerial = value;
+
+        }
+
+      }
+
+    }
+
+
+    const serial =
+      maxSerial + 1;
+
+
+    // ==========================================
+    // KAUNTER
+    //
+    // 0001 - 0100 = Kaunter 1
+    // 0101 - 0200 = Kaunter 2
+    // ...
+    // 1401 - 1500 = Kaunter 15
+    // ==========================================
+
+    const counter =
+      Math.ceil(
+        serial / 100
+      );
+
+
+    const counterLabel =
+      "KAUNTER " + counter;
+
+
+    // ==========================================
+    // APPEND DATA BARU
+    //
+    // A = DUN
+    // B = NAMA
+    // C = TELEFON
+    // D = Timestamp
+    // E = NO SIRI
+    // F = KAUNTER
+    // ==========================================
+
+    sheet.appendRow([
+
+      dun,
+
+      namaClean,
+
+      telefonClean,
+
+      timestamp,
+
+      serial,
+
+      counterLabel
+
+    ]);
+
+
+    // ==========================================
+    // GET ROW BARU
+    // ==========================================
+
+    const newRow =
+      sheet.getLastRow();
+
+
+    // ==========================================
+    // FORMAT TIMESTAMP
+    // ==========================================
+
+    sheet
+      .getRange(
+        newRow,
+        4
+      )
+      .setNumberFormat(
+        "dd/MM/yyyy HH:mm:ss"
+      );
+
+
+    // ==========================================
+    // FORMAT NO SIRI
+    //
+    // 1    → 0001
+    // 25   → 0025
+    // 347  → 0347
+    // 1500 → 1500
+    // ==========================================
+
+    sheet
+      .getRange(
+        newRow,
+        5
+      )
+      .setNumberFormat(
+        "0000"
+      );
+
+
+    // ==========================================
+    // RETURN KE INDEX.HTML
+    // ==========================================
+
+    return {
+
+      success: true,
+
+      duplicate: false,
+
+      nama:
+        namaClean,
+
+      dun:
+        dun,
+
+      telefon:
+        maskPhone(
+          telefonClean
+        ),
+
+      timestamp:
+        Utilities.formatDate(
+          timestamp,
+          Session.getScriptTimeZone(),
+          "dd/MM/yyyy HH:mm:ss"
+        ),
+
+      // NOMBOR SIRI
+      serial:
+        serial,
+
+      // FORMAT 4 DIGIT
+      serialFormatted:
+        String(serial)
+          .padStart(4, "0"),
+
+      // NOMBOR KAUNTER
+      counter:
+        counter,
+
+      // LABEL KAUNTER
+      counterLabel:
+        counterLabel
+
+    };
+
+
+  } catch (error) {
+
+    return {
+
+      success: false,
+
+      duplicate: false,
+
+      message:
+        error.message
+
+    };
+
+
+  } finally {
+
+    /*
+     * RELEASE LOCK
+     */
+    try {
+      lock.releaseLock();
+    } catch (e) {
+      // Abaikan jika lock sudah dilepaskan
+    }
+
+  }
+
+}
+
+
+/**
+ * ==========================================
+ * CHECK DUPLICATE
+ *
+ * HANYA:
+ * NAMA SAMA
+ * +
+ * TELEFON SAMA
+ *
+ * Telefon sama sahaja TIDAK BLOCK
+ * kerana keluarga boleh guna nombor sama.
+ * ==========================================
+ */
+function findSameParticipant(
+  ss,
+  nama,
+  phone
+) {
+
+  for (
+    const dun in SHEET_MAP
+  ) {
+
+    const config =
+      SHEET_MAP[dun];
+
+
+    const sheet =
+      ss.getSheetByName(
+        config.sheetName
+      );
+
+
+    if (!sheet) {
+      continue;
+    }
+
+
+    const lastRow =
+      sheet.getLastRow();
+
+
+    if (lastRow < 2) {
+      continue;
+    }
+
+
+    const values =
+      sheet
+        .getRange(
+          2,
+          1,
+          lastRow - 1,
+          4
+        )
+        .getValues();
+
+
+    for (
+      let i = 0;
+      i < values.length;
+      i++
+    ) {
+
+      const existingName =
+        String(
+          values[i][1] || ""
+        )
+          .replace(/\s+/g, " ")
+          .trim()
+          .toUpperCase();
+
+
+      const existingPhone =
+        normalizePhone(
+          values[i][2]
+        );
+
+
+      if (
+        existingName === nama &&
+        existingPhone === phone
+      ) {
+
+        return {
+
+          nama:
+            String(
+              values[i][1] || ""
+            ),
+
+          dun:
+            String(
+              values[i][0] || dun
+            ),
+
+          sheetName:
+            config.sheetName
+
+        };
+
+      }
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+/**
+ * ==========================================
+ * GET NEXT SERIAL NUMBER
+ * ==========================================
+ * Cari NO SIRI tertinggi dalam semua 4 sheet
+ * kemudian tambah 1.
+ *
+ * Contoh:
+ * 1500 sudah digunakan
+ * peserta baru = 1501
+ * ==========================================
+ */
+function getNextSerialNumber(ss) {
+
+  let maxSerial = 0;
+
+  for (const dun in SHEET_MAP) {
+
+    const config = SHEET_MAP[dun];
+
+    const sheet =
+      ss.getSheetByName(config.sheetName);
+
+    if (!sheet) {
+      continue;
+    }
+
+    const lastRow =
+      sheet.getLastRow();
+
+    if (lastRow < 2) {
+      continue;
+    }
+
+    // Baca Column E = NO SIRI
+    const values =
+      sheet
+        .getRange(
+          2,
+          5,
+          lastRow - 1,
+          1
+        )
+        .getValues();
+
+    for (let i = 0; i < values.length; i++) {
+
+      const serial =
+        Number(values[i][0]);
+
+      if (
+        !isNaN(serial) &&
+        serial > maxSerial
+      ) {
+        maxSerial = serial;
+      }
+    }
+  }
+
+  return maxSerial + 1;
+}
+
+
+/**
+ * ==========================================
+ * GET COUNTER
+ * ==========================================
+ *
+ * 0001 - 0100 = KAUNTER 1
+ * 0101 - 0200 = KAUNTER 2
+ * ...
+ * 1401 - 1500 = KAUNTER 15
+ * ==========================================
+ */
+function getCounterFromSerial(serial) {
+
+  return Math.ceil(
+    Number(serial) / 100
+  );
+}
+
+
+/**
+ * ==========================================
+ * PHONE NORMALIZER
+ * ==========================================
+ */
+function normalizePhone(phone) {
+
+  if (
+    phone === null ||
+    phone === undefined
+  ) {
+
+    return "";
+
+  }
+
+
+  let value =
+    String(phone)
+      .trim()
+      .replace(/[^\d+]/g, "");
+
+
+  // +60123456789
+  if (
+    value.startsWith("+60")
+  ) {
+
+    value =
+      "0" +
+      value.substring(3);
+
+  }
+
+
+  // 60123456789
+  else if (
+    value.startsWith("60")
+  ) {
+
+    value =
+      "0" +
+      value.substring(2);
+
+  }
+
+
+  return value;
+
+}
+
+
+/**
+ * ==========================================
+ * MASK PHONE
+ * ==========================================
+ */
+function maskPhone(phone) {
+
+  if (
+    !phone ||
+    phone.length < 7
+  ) {
+
+    return phone;
+
+  }
+
+
+  return (
+    phone.substring(0, 3) +
+    "****" +
+    phone.substring(
+      phone.length - 3
+    )
+  );
+
+}
+
+function testDatabase() {
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const result = {
+    spreadsheet: ss.getName(),
+    sheets: ss.getSheets().map(s => s.getName()),
+    stats: getDUNStats()
+  };
+
+  Logger.log(JSON.stringify(result, null, 2));
+
+  return result;
+}
+
+/**
+ * ==========================================
+ * SEARCH PESERTA
+ *
+ * Cari berdasarkan:
+ * - Nama
+ * - Nombor Telefon
+ * - No Siri
+ *
+ * Semua 4 MASTER DATABASE dibaca.
+ *
+ * STRUKTUR MASTER:
+ * A = DUN
+ * B = NAMA
+ * C = NOMBOR TELEFON
+ * D = Timestamp
+ * E = NO SIRI
+ * F = KAUNTER
+ * ==========================================
+ */
+function searchParticipants(
+  keyword,
+  searchType
+) {
+
+  keyword =
+    String(keyword || "")
+      .trim();
+
+  searchType =
+    String(searchType || "name")
+      .trim()
+      .toLowerCase();
+
+  if (!keyword) {
+    return {
+      success: false,
+      message: "Sila masukkan maklumat carian."
+    };
+  }
+
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  const results = [];
+  const keywordUpper = keyword.toUpperCase();
+  const phoneKeyword = normalizePhone(keyword);
+  const serialKeyword = keyword.replace(/\D/g, "");
+
+  for (const dun in SHEET_MAP) {
+
+    const config = SHEET_MAP[dun];
+    const sheet = ss.getSheetByName(config.sheetName);
+
+    if (!sheet) continue;
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) continue;
+
+    // A:G
+    // A DUN | B NAMA | C TELEFON | D TIMESTAMP
+    // E NO SIRI | F KAUNTER | G QR URL
+    const values = sheet
+      .getRange(2, 1, lastRow - 1, 7)
+      .getValues();
+
+    for (let i = 0; i < values.length; i++) {
+
+      const row = i + 2;
+
+      const existingDun =
+        String(values[i][0] || dun).trim();
+
+      const existingName =
+        String(values[i][1] || "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const existingNameUpper =
+        existingName.toUpperCase();
+
+      const existingPhone =
+        normalizePhone(values[i][2]);
+
+      const timestamp = values[i][3];
+      const serialValue = values[i][4];
+      const counterValue = String(values[i][5] || "").trim();
+      const qrUrl = String(values[i][6] || "").trim();
+
+      let match = false;
+
+      if (searchType === "name") {
+        match = existingNameUpper.includes(keywordUpper);
+
+      } else if (searchType === "phone") {
+        match = !!phoneKeyword &&
+          existingPhone.includes(phoneKeyword);
+
+      } else if (searchType === "serial") {
+        const existingSerial = Number(serialValue);
+        const searchSerial = Number(serialKeyword);
+
+        match =
+          serialKeyword !== "" &&
+          !isNaN(existingSerial) &&
+          !isNaN(searchSerial) &&
+          existingSerial === searchSerial;
+
+      } else {
+        throw new Error("Jenis carian tidak sah.");
+      }
+
+      if (!match) continue;
+
+      const checkIn =
+        getCheckInStatus(
+          ss,
+          config.sheetName,
+          row
+        );
+
+      let registerTime = "";
+
+      if (timestamp instanceof Date) {
+        registerTime =
+          Utilities.formatDate(
+            timestamp,
+            Session.getScriptTimeZone(),
+            "dd/MM/yyyy HH:mm"
+          );
+      } else {
+        registerTime = String(timestamp || "");
+      }
+
+      let serial = "";
+      let serialNumber = 0;
+
+      if (
+        serialValue !== "" &&
+        serialValue !== null &&
+        serialValue !== undefined
+      ) {
+        serialNumber = Number(serialValue);
+
+        if (!isNaN(serialNumber)) {
+          serial = String(serialNumber).padStart(4, "0");
+        } else {
+          serial = String(serialValue);
+        }
+      }
+
+      let counter = counterValue;
+
+      if (!counter && serialNumber > 0) {
+        counter =
+          "KAUNTER " +
+          Math.ceil(serialNumber / 100);
+      }
+
+      results.push({
+        sourceSheet: config.sheetName,
+        sourceRow: row,
+        dun: existingDun,
+        shortName: config.shortName,
+        nama: existingName,
+        telefon: maskPhone(existingPhone),
+        serial: serial,
+        serialNumber: serialNumber,
+        counter: counter,
+        qrUrl: qrUrl,
+        timestamp: registerTime,
+        checkedIn: checkIn.checkedIn,
+        checkInTime: checkIn.time
+      });
+    }
+  }
+
+  return {
+    success: true,
+    keyword: keyword,
+    searchType: searchType,
+    count: results.length,
+    results: results
+  };
+
+}
+
+
+/**
+ * ==========================================
+ * GET CHECK-IN STATUS
+ * ==========================================
+ */
+function getCheckInStatus(
+  ss,
+  sourceSheet,
+  sourceRow
+) {
+
+  const checkSheet =
+    ss.getSheetByName(
+      "Check In"
+    );
+
+
+  if (!checkSheet) {
+
+    return {
+
+      checkedIn: false,
+
+      time: ""
+
+    };
+
+  }
+
+
+  const lastRow =
+    checkSheet.getLastRow();
+
+
+  if (lastRow < 2) {
+
+    return {
+
+      checkedIn: false,
+
+      time: ""
+
+    };
+
+  }
+
+
+  const values =
+    checkSheet
+      .getRange(
+        2,
+        1,
+        lastRow - 1,
+        6
+      )
+      .getValues();
+
+
+  /*
+   * Struktur Check In:
+   *
+   * A DUN
+   * B NAMA
+   * C TELEFON
+   * D SOURCE SHEET
+   * E SOURCE ROW
+   * F CHECK-IN TIMESTAMP
+   */
+
+
+  for (
+    let i = 0;
+    i < values.length;
+    i++
+  ) {
+
+    const existingSheet =
+      String(
+        values[i][3] || ""
+      ).trim();
+
+
+    const existingRow =
+      Number(
+        values[i][4]
+      );
+
+
+    if (
+      existingSheet === sourceSheet &&
+      existingRow === Number(sourceRow)
+    ) {
+
+      let time = "";
+
+
+      if (values[i][5]) {
+
+        time =
+          Utilities.formatDate(
+            new Date(values[i][5]),
+            Session.getScriptTimeZone(),
+            "dd/MM/yyyy HH:mm:ss"
+          );
+
+      }
+
+
+      return {
+
+        checkedIn: true,
+
+        time: time
+
+      };
+
+    }
+
+  }
+
+
+  return {
+
+    checkedIn: false,
+
+    time: ""
+
+  };
+
+}
+
+
+/**
+ * ==========================================
+ * CHECK-IN PESERTA
+ *
+ * selectedParticipants:
+ *
+ * [
+ *   {
+ *     sourceSheet: "Bil KLB",
+ *     sourceRow: 540
+ *   }
+ * ]
+ * ==========================================
+ */
+function checkInParticipants(
+  selectedParticipants,
+  authToken
+) {
+
+  const auth = requireAuth_(authToken, ["ADMIN", "URUSETIA"]);
+
+  const lock =
+    LockService.getScriptLock();
+
+
+  try {
+
+    lock.waitLock(10000);
+
+
+    if (
+      !Array.isArray(
+        selectedParticipants
+      ) ||
+      selectedParticipants.length === 0
+    ) {
+
+      throw new Error(
+        "Sila pilih sekurang-kurangnya seorang peserta."
+      );
+
+    }
+
+
+    const ss =
+      SpreadsheetApp
+        .getActiveSpreadsheet();
+
+
+    /*
+     * Pastikan Check In sheet wujud
+     */
+    const checkSheet =
+      getOrCreateCheckInSheet(
+        ss
+      );
+
+
+    const checkedIn = [];
+
+    const alreadyCheckedIn = [];
+
+
+    selectedParticipants.forEach(
+      function(participant) {
+
+
+        const sourceSheet =
+          String(
+            participant.sourceSheet || ""
+          ).trim();
+
+
+        const sourceRow =
+          Number(
+            participant.sourceRow
+          );
+
+
+        if (
+          !sourceSheet ||
+          !sourceRow
+        ) {
+
+          return;
+
+        }
+
+
+        /*
+         * Pastikan peserta masih wujud
+         */
+        const source =
+          ss.getSheetByName(
+            sourceSheet
+          );
+
+
+        if (!source) {
+          return;
+        }
+
+
+        if (
+          sourceRow < 2 ||
+          sourceRow > source.getLastRow()
+        ) {
+
+          return;
+
+        }
+
+
+        // Urusetia hanya boleh check-in peserta kaunter sendiri.
+        if (auth.role === "URUSETIA") {
+          const participantRow = source.getRange(sourceRow, 5, 1, 2).getValues()[0];
+          const serialNumber = Number(participantRow[0] || 0);
+          const participantCounter = String(participantRow[1] || (serialNumber > 0 ? "KAUNTER " + Math.ceil(serialNumber / 100) : "")).trim().toUpperCase();
+          if (participantCounter !== auth.counter) {
+            throw new Error("Peserta " + sourceRow + " bukan di bawah " + auth.counter + ".");
+          }
+        }
+
+        /*
+         * CHECK DAHULU
+         */
+        const status =
+          getCheckInStatus(
+            ss,
+            sourceSheet,
+            sourceRow
+          );
+
+
+        if (status.checkedIn) {
+
+          alreadyCheckedIn.push({
+
+            sourceSheet:
+              sourceSheet,
+
+            sourceRow:
+              sourceRow,
+
+            time:
+              status.time
+
+          });
+
+
+          return;
+
+        }
+
+
+        /*
+         * BACA DATA PESERTA
+         */
+        const rowData =
+          source
+            .getRange(
+              sourceRow,
+              1,
+              1,
+              4
+            )
+            .getValues()[0];
+
+
+        const dun =
+          String(
+            rowData[0] || ""
+          ).trim();
+
+
+        const nama =
+          String(
+            rowData[1] || ""
+          ).trim();
+
+
+        const telefon =
+          normalizePhone(
+            rowData[2]
+          );
+
+
+        const timestamp =
+          new Date();
+
+
+        /*
+         * SIMPAN CHECK-IN
+         */
+        checkSheet.appendRow([
+
+          dun,
+
+          nama,
+
+          telefon,
+
+          sourceSheet,
+
+          sourceRow,
+
+          timestamp
+
+        ]);
+
+
+        checkedIn.push({
+
+          sourceSheet:
+            sourceSheet,
+
+          sourceRow:
+            sourceRow,
+
+          dun:
+            dun,
+
+          nama:
+            nama,
+
+          time:
+            Utilities.formatDate(
+              timestamp,
+              Session.getScriptTimeZone(),
+              "dd/MM/yyyy HH:mm:ss"
+            )
+
+        });
+
+      }
+    );
+
+
+    /*
+     * FORMAT TIMESTAMP
+     */
+    const lastRow =
+      checkSheet.getLastRow();
+
+
+    if (lastRow >= 2) {
+
+      checkSheet
+        .getRange(
+          2,
+          6,
+          lastRow - 1,
+          1
+        )
+        .setNumberFormat(
+          "dd/MM/yyyy HH:mm:ss"
+        );
+
+    }
+
+
+    return {
+
+      success: true,
+
+      checkedIn:
+        checkedIn,
+
+      alreadyCheckedIn:
+        alreadyCheckedIn,
+
+      count:
+        checkedIn.length
+
+    };
+
+
+  } catch (error) {
+
+    return {
+
+      success: false,
+
+      message:
+        error.message
+
+    };
+
+
+  } finally {
+
+    try {
+
+      lock.releaseLock();
+
+    } catch (e) {}
+
+  }
+
+}
+
+
+/**
+ * ==========================================
+ * CREATE CHECK IN SHEET
+ * ==========================================
+ */
+function getOrCreateCheckInSheet(
+  ss
+) {
+
+  let sheet =
+    ss.getSheetByName(
+      "Check In"
+    );
+
+
+  if (!sheet) {
+
+    sheet =
+      ss.insertSheet(
+        "Check In"
+      );
+
+
+    sheet
+      .getRange(
+        1,
+        1,
+        1,
+        6
+      )
+      .setValues([[
+        "DUN",
+        "NAMA",
+        "NOMBOR TELEFON",
+        "SOURCE SHEET",
+        "SOURCE ROW",
+        "CHECK-IN TIMESTAMP"
+      ]]);
+
+
+    sheet
+      .getRange(
+        1,
+        1,
+        1,
+        6
+      )
+      .setFontWeight(
+        "bold"
+      );
+
+
+    sheet
+      .setFrozenRows(
+        1
+      );
+
+  }
+
+
+  return sheet;
+
+}
+
+/****************************************************
+ * BRISK WALK 2026
+ * PAGE 3 - LIVE DASHBOARD
+ ****************************************************/
+
+
+/**
+ * ==========================================
+ * GET DASHBOARD DATA
+ * ==========================================
+ */
+function getDashboardData() {
+
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+
+  /*
+   * DAPATKAN JUMLAH PESERTA
+   */
+  const stats =
+    getDUNStats();
+
+
+  /*
+   * DEFAULT DATA SETIAP DUN
+   */
+  const dunStats = {};
+
+
+  stats.dun.forEach(function(item) {
+
+    dunStats[item.sheetName] = {
+
+      dun:
+        item.dun,
+
+      shortName:
+        item.shortName,
+
+      total:
+        item.count,
+
+      checkedIn:
+        0,
+
+      pending:
+        item.count
+
+    };
+
+  });
+
+
+  /*
+   * BACA CHECK IN
+   */
+  const checkSheet =
+    ss.getSheetByName(
+      "Check In"
+    );
+
+
+  let totalCheckIn = 0;
+
+
+  if (checkSheet) {
+
+    const lastRow =
+      checkSheet.getLastRow();
+
+
+    if (lastRow >= 2) {
+
+      const values =
+        checkSheet
+          .getRange(
+            2,
+            1,
+            lastRow - 1,
+            6
+          )
+          .getValues();
+
+
+      values.forEach(function(row) {
+
+        const dun =
+          String(
+            row[0] || ""
+          ).trim();
+
+
+        const sourceSheet =
+          String(
+            row[3] || ""
+          ).trim();
+
+
+        /*
+         * Pastikan rekod check-in sah
+         */
+        if (
+          !sourceSheet ||
+          !row[5]
+        ) {
+
+          return;
+
+        }
+
+
+        /*
+         * Elakkan kira duplicate
+         * jika berlaku rekod berganda
+         */
+        if (
+          dunStats[sourceSheet]
+        ) {
+
+          dunStats[sourceSheet]
+            .checkedIn++;
+
+          totalCheckIn++;
+
+        }
+
+      });
+
+    }
+
+  }
+
+
+  /*
+   * KIRA SEMULA PENDING
+   */
+  const dun = [];
+
+
+  Object.keys(dunStats)
+    .forEach(function(sheetName) {
+
+      const item =
+        dunStats[sheetName];
+
+
+      item.pending =
+        Math.max(
+          0,
+          item.total -
+          item.checkedIn
+        );
+
+
+      item.percentage =
+        item.total > 0
+          ? (
+              item.checkedIn /
+              item.total
+            ) * 100
+          : 0;
+
+
+      dun.push(item);
+
+    });
+
+
+  /*
+   * TOTAL
+   */
+  const total =
+    stats.total;
+
+
+  const pending =
+    Math.max(
+      0,
+      total -
+      totalCheckIn
+    );
+
+
+  const percentage =
+    total > 0
+      ? (
+          totalCheckIn /
+          total
+        ) * 100
+      : 0;
+
+
+  return {
+
+    success: true,
+
+    total:
+      total,
+
+    checkedIn:
+      totalCheckIn,
+
+    pending:
+      pending,
+
+    percentage:
+      percentage,
+
+    dun:
+      dun,
+
+    updated:
+      Utilities.formatDate(
+        new Date(),
+        Session.getScriptTimeZone(),
+        "dd/MM/yyyy HH:mm:ss"
+      )
+
+  };
+
+}
+
+function getWebAppUrl() {
+  return ScriptApp.getService().getUrl();
+}
+
+function include(filename) {
+  return HtmlService
+    .createHtmlOutputFromFile(filename)
+    .getContent();
+}
+
+function getParticipantsByDUN(dun, authToken) {
+
+  requireAdmin_(authToken);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!SHEET_MAP[dun]) {
+    throw new Error("DUN tidak sah: " + dun);
+  }
+
+  const config = SHEET_MAP[dun];
+  const sheet = ss.getSheetByName(config.sheetName);
+
+  if (!sheet) {
+    throw new Error(
+      "Sheet tidak dijumpai: " + config.sheetName
+    );
+  }
+
+  const lastRow = sheet.getLastRow();
+
+  if (lastRow < 2) {
+    return {
+      dun: dun,
+      shortName: config.shortName,
+      total: 0,
+      checkedIn: 0,
+      pending: 0,
+      percentage: 0,
+      participants: []
+    };
+  }
+
+  // Ambil data peserta
+  const values = sheet
+    .getRange(2, 1, lastRow - 1, 7)
+    .getValues();
+
+  // ==============================
+  // BACA CHECK-IN SEKALI SAHAJA
+  // ==============================
+
+  const checkInMap = {};
+
+  const checkInSheet = ss.getSheetByName("Check In");
+
+  if (checkInSheet && checkInSheet.getLastRow() >= 2) {
+
+    const checkLastRow = checkInSheet.getLastRow();
+
+    const checkData = checkInSheet
+      .getRange(
+        2,
+        1,
+        checkLastRow - 1,
+        6
+      )
+      .getValues();
+
+    checkData.forEach(function(row) {
+
+      const sourceSheet = String(row[3] || "");
+      const sourceRow = Number(row[4] || 0);
+      const checkInTime = row[5];
+
+      if (sourceSheet && sourceRow) {
+
+        const key =
+          sourceSheet + "#" + sourceRow;
+
+        checkInMap[key] = checkInTime;
+      }
+
+    });
+  }
+
+  // ==============================
+  // BINA SENARAI PESERTA
+  // ==============================
+
+  const participants = [];
+
+  values.forEach(function(row, index) {
+
+    const sourceRow = index + 2;
+
+    const nama = String(row[1] || "").trim();
+    const telefon = String(row[2] || "").trim();
+    const timestamp = row[3];
+    const serialValue = row[4];
+    const counterValue = String(row[5] || "").trim();
+    const qrUrl = String(row[6] || "").trim();
+
+    let serial = "";
+    let serialNumber = 0;
+
+    if (serialValue !== "" && serialValue !== null && serialValue !== undefined) {
+      serialNumber = Number(serialValue);
+      if (!isNaN(serialNumber)) {
+        serial = String(serialNumber).padStart(4, "0");
+      } else {
+        serial = String(serialValue);
+      }
+    }
+
+    const counter =
+      counterValue ||
+      (serialNumber > 0 ? "KAUNTER " + Math.ceil(serialNumber / 100) : "");
+
+    if (!nama) return;
+
+    const key =
+      config.sheetName + "#" + sourceRow;
+
+    const checkedIn =
+      Object.prototype.hasOwnProperty.call(
+        checkInMap,
+        key
+      );
+
+    let registerTime = "";
+
+    if (timestamp instanceof Date) {
+
+      registerTime =
+        Utilities.formatDate(
+          timestamp,
+          Session.getScriptTimeZone(),
+          "dd/MM/yyyy HH:mm"
+        );
+
+    } else {
+
+      registerTime = String(timestamp || "");
+    }
+
+    let checkInTime = "";
+
+    if (checkedIn) {
+
+      const value = checkInMap[key];
+
+      if (value instanceof Date) {
+
+        checkInTime =
+          Utilities.formatDate(
+            value,
+            Session.getScriptTimeZone(),
+            "dd/MM/yyyy HH:mm"
+          );
+
+      } else {
+
+        checkInTime = String(value || "");
+      }
+    }
+
+    participants.push({
+
+      sourceSheet: config.sheetName,
+
+      sourceRow: sourceRow,
+
+      dun: dun,
+
+      shortName: config.shortName,
+
+      nama: nama,
+
+      telefon: maskPhone(telefon),
+
+      serial: serial,
+      serialNumber: serialNumber,
+      counter: counter,
+      qrUrl: qrUrl,
+
+      timestamp: registerTime,
+
+      checkedIn: checkedIn,
+
+      checkInTime: checkInTime
+
+    });
+
+  });
+
+  const total = participants.length;
+
+  const checkedIn =
+    participants.filter(function(p) {
+      return p.checkedIn;
+    }).length;
+
+  const pending =
+    total - checkedIn;
+
+  const percentage =
+    total > 0
+      ? Math.round((checkedIn / total) * 1000) / 10
+      : 0;
+
+  return {
+
+    dun: dun,
+
+    shortName: config.shortName,
+
+    total: total,
+
+    checkedIn: checkedIn,
+
+    pending: pending,
+
+    percentage: percentage,
+
+    participants: participants
+
+  };
+}
+
+function checkInSingleParticipant(sourceSheetName, sourceRow, authToken) {
+
+  // Legacy endpoint/function retained for compatibility,
+  // tetapi kini wajib melalui authentication.
+  requireAuth_(authToken, ["ADMIN", "URUSETIA"]);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  sourceSheetName = String(sourceSheetName || "").trim();
+  sourceRow = Number(sourceRow);
+
+  if (!sourceSheetName || !sourceRow) {
+    throw new Error("Maklumat peserta tidak sah.");
+  }
+
+
+  // ==========================================
+  // PASTIKAN SOURCE SHEET WUJUD
+  // ==========================================
+
+  const sourceSheet =
+    ss.getSheetByName(sourceSheetName);
+
+  if (!sourceSheet) {
+    throw new Error(
+      "Sheet peserta tidak dijumpai."
+    );
+  }
+
+
+  if (sourceRow < 2 ||
+      sourceRow > sourceSheet.getLastRow()) {
+
+    throw new Error(
+      "Baris peserta tidak sah."
+    );
+  }
+
+
+  // ==========================================
+  // CHECK-IN SHEET
+  // ==========================================
+
+  const checkInSheet =
+    getOrCreateCheckInSheet(ss);
+
+
+  // ==========================================
+  // SEMAK JIKA SUDAH CHECK-IN
+  // ==========================================
+
+  const lastRow =
+    checkInSheet.getLastRow();
+
+
+  if (lastRow >= 2) {
+
+    const checkData =
+      checkInSheet
+        .getRange(
+          2,
+          1,
+          lastRow - 1,
+          6
+        )
+        .getValues();
+
+
+    for (let i = 0; i < checkData.length; i++) {
+
+      const existingSheet =
+        String(checkData[i][3] || "").trim();
+
+      const existingRow =
+        Number(checkData[i][4] || 0);
+
+
+      if (
+        existingSheet === sourceSheetName &&
+        existingRow === sourceRow
+      ) {
+
+        let existingTime =
+          checkData[i][5];
+
+
+        if (existingTime instanceof Date) {
+
+          existingTime =
+            Utilities.formatDate(
+              existingTime,
+              Session.getScriptTimeZone(),
+              "dd/MM/yyyy HH:mm"
+            );
+
+        }
+
+
+        return {
+
+          success: false,
+
+          alreadyCheckedIn: true,
+
+          message:
+            "Peserta ini sudah check-in.",
+
+          checkInTime:
+            existingTime || ""
+
+        };
+
+      }
+
+    }
+
+  }
+
+
+  // ==========================================
+  // AMBIL DATA PESERTA
+  // ==========================================
+
+  const rowData =
+    sourceSheet
+      .getRange(
+        sourceRow,
+        1,
+        1,
+        4
+      )
+      .getValues()[0];
+
+
+  const dun =
+    String(rowData[0] || "").trim();
+
+  const nama =
+    String(rowData[1] || "").trim();
+
+  const telefon =
+    String(rowData[2] || "").trim();
+
+
+  if (!nama) {
+
+    throw new Error(
+      "Nama peserta tidak dijumpai."
+    );
+
+  }
+
+
+  // ==========================================
+  // REKOD CHECK-IN
+  // ==========================================
+
+  const now =
+    new Date();
+
+
+  checkInSheet.appendRow([
+
+    dun,
+
+    nama,
+
+    telefon,
+
+    sourceSheetName,
+
+    sourceRow,
+
+    now
+
+  ]);
+
+
+  // ==========================================
+  // RETURN
+  // ==========================================
+
+  const formattedTime =
+    Utilities.formatDate(
+      now,
+      Session.getScriptTimeZone(),
+      "dd/MM/yyyy HH:mm"
+    );
+
+
+  return {
+
+    success: true,
+
+    alreadyCheckedIn: false,
+
+    message:
+      "Check-in berjaya.",
+
+    checkInTime:
+      formattedTime
+
+  };
+
+}
+
+/**
+ * ==========================================
+ * GENERATE NO SIRI + KAUNTER
+ * ==========================================
+ *
+ * No Siri:
+ * 0001, 0002, 0003 ...
+ *
+ * Berdasarkan Timestamp:
+ * paling awal -> paling akhir
+ *
+ * Kaunter:
+ * 0001 - 0100  = Kaunter 1
+ * 0101 - 0200  = Kaunter 2
+ * dan seterusnya.
+ *
+ * TIDAK UBAH:
+ * - DUN
+ * - NAMA
+ * - TELEFON
+ * - TIMESTAMP
+ */
+function testGenerateSerialNumbers() {
+
+  const result =
+    generateSerialNumbers();
+
+  Logger.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
+
+}
+
+/**
+ * ==========================================
+ * GENERATE SERIAL NUMBER PESERTA LAMA
+ *
+ * Susun SEMUA peserta 4 DUN berdasarkan
+ * Timestamp paling awal → paling lewat.
+ *
+ * E = NO SIRI
+ * F = KAUNTER
+ * ==========================================
+ */
+function generateSerialNumbers() {
+
+  const lock = LockService.getScriptLock();
+
+  try {
+
+    lock.waitLock(30000);
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const participants = [];
+
+    for (const dun in SHEET_MAP) {
+
+      const config = SHEET_MAP[dun];
+      const sheet = ss.getSheetByName(config.sheetName);
+
+      if (!sheet) continue;
+
+      const lastRow = sheet.getLastRow();
+      if (lastRow < 2) continue;
+
+      // Pastikan E:F:G mempunyai header.
+      sheet.getRange(1, 5, 1, 3).setValues([[
+        "NO SIRI",
+        "KAUNTER",
+        "QR URL"
+      ]]);
+
+      sheet.getRange(1, 5, 1, 3).setFontWeight("bold");
+
+      const values = sheet
+        .getRange(2, 1, lastRow - 1, 4)
+        .getValues();
+
+      values.forEach(function(row, index) {
+
+        const sourceRow = index + 2;
+        const nama = String(row[1] || "").trim();
+        const timestamp = row[3];
+
+        if (!nama) return;
+
+        let timeValue = 0;
+
+        if (
+          timestamp instanceof Date &&
+          !isNaN(timestamp.getTime())
+        ) {
+          timeValue = timestamp.getTime();
+        } else if (timestamp) {
+          const parsed = new Date(timestamp);
+          if (!isNaN(parsed.getTime())) {
+            timeValue = parsed.getTime();
+          }
+        }
+
+        participants.push({
+          sheetName: config.sheetName,
+          row: sourceRow,
+          dun: dun,
+          timestamp: timestamp,
+          timeValue: timeValue
+        });
+      });
+    }
+
+    participants.sort(function(a, b) {
+
+      if (a.timeValue !== b.timeValue) {
+        return a.timeValue - b.timeValue;
+      }
+
+      if (a.sheetName !== b.sheetName) {
+        return a.sheetName.localeCompare(b.sheetName);
+      }
+
+      return a.row - b.row;
+    });
+
+    participants.forEach(function(participant, index) {
+
+      const serial = index + 1;
+      const counterLabel =
+        "KAUNTER " + Math.ceil(serial / 100);
+
+      const sheet =
+        ss.getSheetByName(participant.sheetName);
+
+      sheet.getRange(participant.row, 5, 1, 2)
+        .setValues([[
+          serial,
+          counterLabel
+        ]]);
+    });
+
+    // Format semua NO SIRI.
+    for (const dun in SHEET_MAP) {
+      const sheet = ss.getSheetByName(SHEET_MAP[dun].sheetName);
+      if (!sheet || sheet.getLastRow() < 2) continue;
+
+      sheet.getRange(
+        2,
+        5,
+        sheet.getLastRow() - 1,
+        1
+      ).setNumberFormat("0000");
+    }
+
+    const total = participants.length;
+    const lastCounter =
+      total > 0 ? Math.ceil(total / 100) : 0;
+
+    const result = {
+      success: true,
+      total: total,
+      firstSerial: total > 0 ? "0001" : "-",
+      lastSerial: total > 0
+        ? String(total).padStart(4, "0")
+        : "-",
+      counters: lastCounter,
+      message: "No Siri berjaya dijana."
+    };
+
+    Logger.log(JSON.stringify(result, null, 2));
+    return result;
+
+  } catch (error) {
+
+    Logger.log(
+      "ERROR generateSerialNumbers: " +
+      error.message
+    );
+
+    throw error;
+
+  } finally {
+
+    try {
+      lock.releaseLock();
+    } catch (e) {}
+
+  }
+}
+
+
+/**
+ * ==========================================
+ * QR ADMIN SETTINGS
+ * ==========================================
+ *
+ * Jalankan setQRAdminKey("KATA_RAHsia")
+ * SEKALI sahaja dari Apps Script editor.
+ *
+ * Jangan letak key dalam Search.html.
+ */
+function setQRAdminKey(key) {
+
+  key = String(key || "").trim();
+
+  if (key.length < 8) {
+    throw new Error(
+      "QR Admin Key mesti sekurang-kurangnya 8 aksara."
+    );
+  }
+
+  PropertiesService
+    .getScriptProperties()
+    .setProperty("BRISK_QR_ADMIN_KEY", key);
+
+  return {
+    success: true,
+    message: "QR Admin Key berjaya disimpan."
+  };
+}
+
+
+function validateQRAdminKey(adminKey) {
+
+  const savedKey =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty("BRISK_QR_ADMIN_KEY");
+
+  if (!savedKey) {
+    throw new Error(
+      "QR Admin Key belum ditetapkan. Jalankan setQRAdminKey() dahulu."
+    );
+  }
+
+  if (
+    String(adminKey || "") !== savedKey
+  ) {
+    throw new Error(
+      "Akses QR Admin tidak sah."
+    );
+  }
+
+  return true;
+}
+
+
+/**
+ * ==========================================
+ * BUILD QR URL
+ * ==========================================
+ * QR hanya mengandungi No Siri.
+ * Tiada nama / telefon disimpan dalam QR.
+ */
+function buildParticipantQRUrl(serialNumber) {
+
+  const serial = Number(serialNumber);
+
+  if (!serial || isNaN(serial)) {
+    return "";
+  }
+
+  const webAppUrl = getWebAppUrl();
+
+  const targetUrl =
+    webAppUrl +
+    "?page=search&id=" +
+    encodeURIComponent(serial);
+
+  return (
+    "https://quickchart.io/qr?text=" +
+    encodeURIComponent(targetUrl) +
+    "&size=220&margin=2&ecLevel=H"
+  );
+}
+
+
+/**
+ * ==========================================
+ * GENERATE QR - ONE PARTICIPANT
+ * ==========================================
+ * Dipanggil oleh ADMIN sahaja.
+ */
+function generateParticipantQR(
+  adminKey,
+  sourceSheetName,
+  sourceRow
+) {
+
+  validateQRAdminKey(adminKey);
+
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  const sheet =
+    ss.getSheetByName(
+      String(sourceSheetName || "").trim()
+    );
+
+  if (!sheet) {
+    throw new Error("Sheet peserta tidak dijumpai.");
+  }
+
+  const row = Number(sourceRow);
+
+  if (row < 2 || row > sheet.getLastRow()) {
+    throw new Error("Baris peserta tidak sah.");
+  }
+
+  const data =
+    sheet.getRange(row, 1, 1, 7).getValues()[0];
+
+  const serial = Number(data[4]);
+
+  if (!serial || isNaN(serial)) {
+    throw new Error(
+      "Peserta ini belum mempunyai No Siri."
+    );
+  }
+
+  const qrUrl =
+    buildParticipantQRUrl(serial);
+
+  // G = QR URL
+  sheet
+    .getRange(row, 7)
+    .setValue(qrUrl);
+
+  return {
+    success: true,
+    sourceSheet: sheet.getName(),
+    sourceRow: row,
+    serial: String(serial).padStart(4, "0"),
+    counter:
+      String(data[5] || "KAUNTER " + Math.ceil(serial / 100)),
+    qrUrl: qrUrl
+  };
+}
+
+
+/**
+ * ==========================================
+ * GENERATE QR - SEMUA PESERTA
+ * ==========================================
+ * Dipanggil oleh ADMIN sahaja.
+ */
+function generateAllParticipantQR(adminKey) {
+
+  validateQRAdminKey(adminKey);
+
+  const lock =
+    LockService.getScriptLock();
+
+  try {
+
+    lock.waitLock(30000);
+
+    const ss =
+      SpreadsheetApp.getActiveSpreadsheet();
+
+    const baseUrl =
+      getWebAppUrl();
+
+    let total = 0;
+    let generated = 0;
+
+    for (const dun in SHEET_MAP) {
+
+      const config = SHEET_MAP[dun];
+      const sheet =
+        ss.getSheetByName(config.sheetName);
+
+      if (!sheet) continue;
+
+      const lastRow = sheet.getLastRow();
+      if (lastRow < 2) continue;
+
+      // Pastikan header G.
+      sheet
+        .getRange(1, 7)
+        .setValue("QR URL")
+        .setFontWeight("bold");
+
+      const values =
+        sheet
+          .getRange(2, 1, lastRow - 1, 7)
+          .getValues();
+
+      const qrValues = [];
+
+      values.forEach(function(row) {
+
+        const nama = String(row[1] || "").trim();
+        const serial = Number(row[4]);
+
+        if (!nama || !serial || isNaN(serial)) {
+          qrValues.push([row[6] || ""]);
+          return;
+        }
+
+        total++;
+
+        const targetUrl =
+          baseUrl +
+          "?page=search&id=" +
+          encodeURIComponent(serial);
+
+        const qrUrl =
+          "https://quickchart.io/qr?text=" +
+          encodeURIComponent(targetUrl) +
+          "&size=220&margin=2&ecLevel=H";
+
+        qrValues.push([qrUrl]);
+        generated++;
+      });
+
+      sheet
+        .getRange(2, 7, qrValues.length, 1)
+        .setValues(qrValues);
+    }
+
+    return {
+      success: true,
+      total: total,
+      generated: generated,
+      message:
+        generated +
+        " QR peserta berjaya dijana."
+    };
+
+  } catch (error) {
+
+    throw error;
+
+  } finally {
+
+    try {
+      lock.releaseLock();
+    } catch (e) {}
+
+  }
+}
+
+
+function testGenerateSerialNumbers() {
+
+  const result =
+    generateSerialNumbers();
+
+  Logger.log(
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+  return result;
+}
+
+function setupQRAdmin() {
+  setQRAdminKey("BRISK2026ADMIN");
+}
+
+function generateTestQR() {
+  generateParticipantQR(
+    "BRISK2026ADMIN",
+    "Bil KLB",
+    2
+  );
+}
+
+function generateAllQRAdminSafe() {
+
+  const ADMIN_KEY = "BRISK2026ADMIN";
+
+  // ==============================
+  // SEMAK ADMIN KEY
+  // ==============================
+  validateQRAdminKey(ADMIN_KEY);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const results = {
+    total: 0,
+    generated: 0,
+    skippedExisting: 0,
+    skippedNoSerial: 0,
+    sheets: {}
+  };
+
+  // ==============================
+  // LOOP 4 MASTER SHEET
+  // ==============================
+  for (const dun in SHEET_MAP) {
+
+    const config = SHEET_MAP[dun];
+
+    // PENTING:
+    // SHEET_MAP simpan object,
+    // nama sheet sebenar berada di config.sheetName
+    const sheetName = config.sheetName;
+
+    const sheet = ss.getSheetByName(sheetName);
+
+    if (!sheet) {
+      Logger.log("Sheet tidak dijumpai: " + sheetName);
+      continue;
+    }
+
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow < 2) {
+      continue;
+    }
+
+    // ==============================
+    // PASTIKAN HEADER G
+    // ==============================
+    sheet.getRange(1, 7).setValue("QR URL");
+    sheet.getRange(1, 7).setFontWeight("bold");
+
+    // ==============================
+    // BACA A:G
+    // ==============================
+    const values = sheet
+      .getRange(2, 1, lastRow - 1, 7)
+      .getValues();
+
+    let sheetGenerated = 0;
+    let sheetExisting = 0;
+    let sheetNoSerial = 0;
+
+    // ==============================
+    // PROSES PESERTA
+    // ==============================
+    for (let i = 0; i < values.length; i++) {
+
+      results.total++;
+
+      const serial = values[i][4];      // Column E
+      const existingQR = values[i][6];  // Column G
+
+      // ------------------------------
+      // QR SUDAH ADA
+      // ------------------------------
+      if (
+        existingQR !== null &&
+        existingQR !== undefined &&
+        String(existingQR).trim() !== ""
+      ) {
+
+        results.skippedExisting++;
+        sheetExisting++;
+
+        continue;
+      }
+
+      // ------------------------------
+      // TIADA NO SIRI
+      // ------------------------------
+      if (
+        serial === "" ||
+        serial === null ||
+        serial === undefined
+      ) {
+
+        results.skippedNoSerial++;
+        sheetNoSerial++;
+
+        continue;
+      }
+
+      const serialNumber = Number(serial);
+
+      if (
+        isNaN(serialNumber) ||
+        serialNumber < 1
+      ) {
+
+        results.skippedNoSerial++;
+        sheetNoSerial++;
+
+        continue;
+      }
+
+      // ------------------------------
+      // GENERATE QR URL
+      // ------------------------------
+      const qrUrl =
+        buildParticipantQRUrl(serialNumber);
+
+      values[i][6] = qrUrl;
+
+      results.generated++;
+      sheetGenerated++;
+    }
+
+    // ==============================
+    // TULIS BALIK A:G
+    // ==============================
+    sheet
+      .getRange(2, 1, values.length, 7)
+      .setValues(values);
+
+    // ==============================
+    // FORMAT COLUMN G
+    // ==============================
+    sheet
+      .getRange(2, 7, values.length, 1)
+      .setWrap(false);
+
+    results.sheets[sheetName] = {
+      total: values.length,
+      generated: sheetGenerated,
+      skippedExisting: sheetExisting,
+      skippedNoSerial: sheetNoSerial
+    };
+
+    Logger.log(
+      sheetName +
+      " | Total: " + values.length +
+      " | Generated: " + sheetGenerated +
+      " | Existing: " + sheetExisting +
+      " | No Serial: " + sheetNoSerial
+    );
+  }
+
+  SpreadsheetApp.flush();
+
+  // ==============================
+  // FINAL RESULT
+  // ==============================
+  Logger.log(
+    JSON.stringify(results, null, 2)
+  );
+
+  return results;
+}
+
+/**
+ * ==========================================
+ * GET PESERTA MENGIKUT KAUNTER
+ * ==========================================
+ *
+ * Kaunter:
+ * 1 = 0001 - 0100
+ * 2 = 0101 - 0200
+ * 3 = 0201 - 0300
+ * ...
+ *
+ * Data diambil terus daripada 4 MASTER SHEET.
+ *
+ * RETURN:
+ * - NO SIRI
+ * - NAMA
+ * - DUN
+ * - KAUNTER
+ */
+function getParticipantsByCounter(counterNumber, authToken) {
+
+  const counter = Number(counterNumber);
+  const auth = requireAuth_(authToken, ["ADMIN", "URUSETIA"], counter);
+
+  if (!counter || counter < 1) {
+    throw new Error("Kaunter tidak sah.");
+  }
+
+  const ss =
+    SpreadsheetApp.getActiveSpreadsheet();
+
+  const participants = [];
+
+  // ==========================================
+  // LOOP SEMUA MASTER SHEET
+  // ==========================================
+
+  for (const dun in SHEET_MAP) {
+
+    const config =
+      SHEET_MAP[dun];
+
+    const sheet =
+      ss.getSheetByName(
+        config.sheetName
+      );
+
+    if (!sheet) {
+      continue;
+    }
+
+    const lastRow =
+      sheet.getLastRow();
+
+    if (lastRow < 2) {
+      continue;
+    }
+
+    /*
+     * A:G
+     *
+     * A = DUN
+     * B = NAMA
+     * C = TELEFON
+     * D = TIMESTAMP
+     * E = NO SIRI
+     * F = KAUNTER
+     * G = QR URL
+     */
+
+    const values =
+      sheet
+        .getRange(
+          2,
+          1,
+          lastRow - 1,
+          7
+        )
+        .getValues();
+
+
+    // ==========================================
+    // PROSES PESERTA
+    // ==========================================
+
+    values.forEach(function(row, index) {
+
+      const sourceRow =
+        index + 2;
+
+      const dun =
+        String(
+          row[0] || ""
+        ).trim();
+
+      const nama =
+        String(
+          row[1] || ""
+        ).trim();
+
+      const serialValue =
+        row[4];
+
+      const counterValue =
+        String(
+          row[5] || ""
+        ).trim();
+
+
+      if (!nama) {
+        return;
+      }
+
+
+      // ==========================================
+      // NO SIRI
+      // ==========================================
+
+      const serialNumber =
+        Number(serialValue);
+
+      if (
+        !serialNumber ||
+        isNaN(serialNumber)
+      ) {
+        return;
+      }
+
+
+      // ==========================================
+      // KAUNTER
+      // ==========================================
+
+      let participantCounter = 0;
+
+      /*
+       * Cuba baca Column F dahulu.
+       *
+       * Contoh:
+       * KAUNTER 1
+       * KAUNTER 15
+       */
+
+      const match =
+        counterValue.match(
+          /(\d+)/
+        );
+
+      if (match) {
+
+        participantCounter =
+          Number(match[1]);
+
+      } else {
+
+        /*
+         * Jika Column F kosong,
+         * kira berdasarkan No Siri.
+         */
+
+        participantCounter =
+          Math.ceil(
+            serialNumber / 100
+          );
+
+      }
+
+
+      // ==========================================
+      // FILTER KAUNTER
+      // ==========================================
+
+      if (
+        participantCounter !== counter
+      ) {
+        return;
+      }
+
+
+      // ==========================================
+      // CHECK-IN STATUS
+      // ==========================================
+
+      const checkIn =
+        getCheckInStatus(
+          ss,
+          config.sheetName,
+          sourceRow
+        );
+
+      // ==========================================
+      // SIMPAN DATA
+      // ==========================================
+
+      participants.push({
+
+        sourceSheet:
+          config.sheetName,
+
+        sourceRow:
+          sourceRow,
+
+        dun:
+          dun,
+
+        shortName:
+          config.shortName,
+
+        nama:
+          nama,
+
+        serialNumber:
+          serialNumber,
+
+        serial:
+          String(
+            serialNumber
+          ).padStart(
+            4,
+            "0"
+          ),
+
+        counter:
+          "KAUNTER " +
+          participantCounter,
+
+        checkedIn:
+          checkIn.checkedIn,
+
+        checkInTime:
+          checkIn.time
+
+      });
+
+    });
+
+  }
+
+
+  // ==========================================
+  // SUSUN MENGIKUT NO SIRI
+  // ==========================================
+
+  participants.sort(
+    function(a, b) {
+
+      return (
+        a.serialNumber -
+        b.serialNumber
+      );
+
+    }
+  );
+
+
+  // ==========================================
+  // RETURN
+  // ==========================================
+
+  return {
+
+    success: true,
+
+    counter:
+      counter,
+
+    counterLabel:
+      "KAUNTER " +
+      counter,
+
+    total:
+      participants.length,
+
+    participants:
+      participants
+
+  };
+
+}
+
+
+/**
+ * ==========================================================
+ * PADANAN KLB
+ * ==========================================================
+ * Peserta daripada Bil KLB dipadankan secara automatik
+ * dengan rekod dalam DUN KLB berdasarkan NAMA.
+ *
+ * Rekod lengkap disimpan di sheet "Padanan KLB".
+ * Page hanya menerima statistik / pecahan agregat.
+ *
+ * Nota:
+ * - PADAN = satu padanan nama yang unik
+ * - TIADA PADANAN = nama tidak ditemui
+ * - PADANAN BERGANDA = lebih daripada satu rekod nama sama
+ * ==========================================================
+ */
+
+function normalizePadananKLBName_(value) {
+  return String(value || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getPadananKLBHeaderMap_(headers) {
+  const map = {};
+  headers.forEach(function(h, i) {
+    const key = String(h || "").trim().toUpperCase();
+    if (key) map[key] = i;
+  });
+  return map;
+}
+
+function findPadananKLBColumn_(map, names) {
+  for (let i = 0; i < names.length; i++) {
+    const key = String(names[i]).trim().toUpperCase();
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return map[key];
+    }
+  }
+  return -1;
+}
+
+function parsePadananKLBDOB_(value) {
+
+  // 1) Google Sheets memang hantar sebagai Date
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return value;
+  }
+
+  // 2) Jika column Tarikh Lahir dibuat Plain Text
+  //    sokong format:
+  //    dd/mm/yyyy
+  //    dd-mm-yyyy
+  //    yyyy-mm-dd
+  //    yyyy/mm/dd
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  let m;
+
+  // dd/mm/yyyy atau dd-mm-yyyy
+  m = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if (m) {
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = Number(m[3]);
+    const d = new Date(year, month - 1, day);
+
+    if (
+      d.getFullYear() === year &&
+      d.getMonth() === month - 1 &&
+      d.getDate() === day
+    ) {
+      return d;
+    }
+  }
+
+  // yyyy-mm-dd atau yyyy/mm/dd
+  m = text.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+  if (m) {
+    const year = Number(m[1]);
+    const month = Number(m[2]);
+    const day = Number(m[3]);
+    const d = new Date(year, month - 1, day);
+
+    if (
+      d.getFullYear() === year &&
+      d.getMonth() === month - 1 &&
+      d.getDate() === day
+    ) {
+      return d;
+    }
+  }
+
+  // 3) Jika Google Sheets simpan sebagai nombor serial tarikh
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    const serial = Number(text);
+
+    if (serial > 20000 && serial < 100000) {
+      const d = new Date(
+        Date.UTC(1899, 11, 30) + serial * 86400000
+      );
+
+      if (!isNaN(d.getTime())) {
+        return new Date(
+          d.getUTCFullYear(),
+          d.getUTCMonth(),
+          d.getUTCDate()
+        );
+      }
+    }
+  }
+
+  return null;
+}
+
+function calculateAgePadananKLB_(dob) {
+
+  const birthDate = parsePadananKLBDOB_(dob);
+
+  if (!birthDate) return "";
+
+  const today = new Date();
+
+  let age =
+    today.getFullYear() -
+    birthDate.getFullYear();
+
+  const monthDiff =
+    today.getMonth() -
+    birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (
+      monthDiff === 0 &&
+      today.getDate() < birthDate.getDate()
+    )
+  ) {
+    age--;
+  }
+
+  return age >= 0 && age <= 150 ? age : "";
+}
+
+function getOrCreatePadananKLBSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("Padanan KLB");
+
+  if (!sheet) {
+    sheet = ss.insertSheet("Padanan KLB");
+  }
+
+  const headers = [
+    "NO SIRI",
+    "NAMA PESERTA",
+    "NO. K/P (BARU)",
+    "TARIKH LAHIR",
+    "UMUR",
+    "NO. TELEFON",
+    "NAMA DM",
+    "NAMA LOKALITI",
+    "ALAMAT KEDIAMAN",
+    "STATUS PADANAN",
+    "SOURCE ROW PESERTA",
+    "SOURCE ROW DUN KLB",
+    "TIMESTAMP PADANAN"
+  ];
+
+  const current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+  let needsHeader = false;
+
+  for (let i = 0; i < headers.length; i++) {
+    if (String(current[i] || "").trim() !== headers[i]) {
+      needsHeader = true;
+      break;
+    }
+  }
+
+  if (needsHeader) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+
+  return sheet;
+}
+
+function runPadananKLB(authToken) {
+  requireAdmin_(authToken);
+  const lock = LockService.getScriptLock();
+
+  try {
+    lock.waitLock(30000);
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const pesertaSheet = ss.getSheetByName("Bil KLB");
+    const voterSheet = ss.getSheetByName("DUN KLB");
+
+    if (!pesertaSheet) {
+      throw new Error('Sheet "Bil KLB" tidak dijumpai.');
+    }
+
+    if (!voterSheet) {
+      throw new Error('Sheet "DUN KLB" tidak dijumpai.');
+    }
+
+    const pesertaLast = pesertaSheet.getLastRow();
+    const voterLast = voterSheet.getLastRow();
+
+    if (pesertaLast < 2) {
+      throw new Error("Bil KLB tiada data peserta.");
+    }
+
+    if (voterLast < 2) {
+      throw new Error("DUN KLB tiada data.");
+    }
+
+    // ------------------------------------------------------
+    // BACA PESERTA BRISK WALK
+    // A:G = DUN, Nama, Telefon, Timestamp, No Siri, Kaunter, QR
+    // ------------------------------------------------------
+    const pesertaData = pesertaSheet
+      .getRange(2, 1, pesertaLast - 1, 7)
+      .getValues();
+
+    // ------------------------------------------------------
+    // BACA DUN KLB
+    // ------------------------------------------------------
+    const voterHeaders = voterSheet
+      .getRange(1, 1, 1, voterSheet.getLastColumn())
+      .getValues()[0];
+
+    const voterData = voterSheet
+      .getRange(2, 1, voterLast - 1, voterSheet.getLastColumn())
+      .getValues();
+
+    const h = getPadananKLBHeaderMap_(voterHeaders);
+
+    const cKP = findPadananKLBColumn_(h, [
+      "No. K/P (Baru)",
+      "NO. K/P (BARU)",
+      "No K/P (Baru)"
+    ]);
+
+    const cDOB = findPadananKLBColumn_(h, [
+      "Tarikh Lahir"
+    ]);
+
+    const cDM = findPadananKLBColumn_(h, [
+      "Nama DM"
+    ]);
+
+    const cLokaliti = findPadananKLBColumn_(h, [
+      "Nama Lokaliti"
+    ]);
+
+    const cAlamat = findPadananKLBColumn_(h, [
+      "Alamat Kediaman"
+    ]);
+
+    const cTelBimbit = findPadananKLBColumn_(h, [
+      "Tel. Bimbit",
+      "Tel Bimbit"
+    ]);
+
+    const cNama = findPadananKLBColumn_(h, [
+      "Nama Pemilih"
+    ]);
+
+    if (cNama < 0) {
+      throw new Error('Kolum "Nama Pemilih" tidak dijumpai dalam DUN KLB.');
+    }
+
+    // ------------------------------------------------------
+    // INDEX NAMA DUN KLB
+    // ------------------------------------------------------
+    const voterIndex = {};
+
+    voterData.forEach(function(row, i) {
+      const nama = normalizePadananKLBName_(row[cNama]);
+      if (!nama) return;
+
+      if (!voterIndex[nama]) {
+        voterIndex[nama] = [];
+      }
+
+      voterIndex[nama].push({
+        rowNumber: i + 2,
+        row: row
+      });
+    });
+
+    const output = [];
+    const summary = {
+      total: 0,
+      matched: 0,
+      noMatch: 0,
+      multiple: 0,
+      age: {},
+      dm: {},
+      locality: {}
+    };
+
+    const now = new Date();
+
+    pesertaData.forEach(function(row, i) {
+      const sourceRow = i + 2;
+      const namaPeserta = String(row[1] || "").trim();
+      const telefonPeserta = String(row[2] || "").trim();
+      const noSiri = row[4] || "";
+      const key = normalizePadananKLBName_(namaPeserta);
+      const matches = key ? (voterIndex[key] || []) : [];
+
+      summary.total++;
+
+      let status = "TIADA PADANAN";
+      let matchedRow = null;
+
+      if (matches.length === 1) {
+        status = "PADAN";
+        matchedRow = matches[0];
+        summary.matched++;
+      } else if (matches.length > 1) {
+        status = "PADANAN BERGANDA";
+        summary.multiple++;
+      } else {
+        summary.noMatch++;
+      }
+
+      let kp = "";
+      let dob = "";
+      let age = "";
+      let dm = "";
+      let locality = "";
+      let address = "";
+      let telBimbit = "";
+      let voterSourceRow = "";
+
+      if (matchedRow) {
+        const vr = matchedRow.row;
+        voterSourceRow = matchedRow.rowNumber;
+
+        if (cKP >= 0) kp = vr[cKP] || "";
+        if (cDOB >= 0) {
+          dob = vr[cDOB] || "";
+          age = calculateAgePadananKLB_(dob);
+        }
+        if (cDM >= 0) dm = String(vr[cDM] || "").trim();
+        if (cLokaliti >= 0) locality = String(vr[cLokaliti] || "").trim();
+        if (cAlamat >= 0) address = String(vr[cAlamat] || "").trim();
+        if (cTelBimbit >= 0) telBimbit = String(vr[cTelBimbit] || "").trim();
+
+        if (age !== "") {
+          const ageKey =
+            age >= 66 ? "66+" :
+            age >= 56 ? "56-65" :
+            age >= 46 ? "46-55" :
+            age >= 36 ? "36-45" :
+            age >= 26 ? "26-35" :
+            age >= 18 ? "18-25" :
+            "<18";
+
+          summary.age[ageKey] =
+            (summary.age[ageKey] || 0) + 1;
+        }
+
+        if (dm) {
+          summary.dm[dm] =
+            (summary.dm[dm] || 0) + 1;
+        }
+
+        if (locality) {
+          summary.locality[locality] =
+            (summary.locality[locality] || 0) + 1;
+        }
+      }
+
+      // Jika tiada Tel. Bimbit di DUN KLB, kekalkan telefon peserta
+      // sebagai rujukan pentadbiran dalam sheet padanan.
+      const outputPhone = telBimbit || telefonPeserta;
+
+      output.push([
+        noSiri,
+        namaPeserta,
+        kp,
+        dob,
+        age,
+        outputPhone,
+        dm,
+        locality,
+        address,
+        status,
+        sourceRow,
+        voterSourceRow,
+        now
+      ]);
+    });
+
+    // ------------------------------------------------------
+    // TULIS KE PADANAN KLB
+    // Setiap run menggantikan hasil lama supaya tiada duplicate.
+    // ------------------------------------------------------
+    const padananSheet = getOrCreatePadananKLBSheet_();
+
+    const maxCols = 13;
+    const existingRows = padananSheet.getMaxRows();
+
+    if (existingRows > 1) {
+      padananSheet
+        .getRange(2, 1, existingRows - 1, maxCols)
+        .clearContent();
+    }
+
+    if (output.length) {
+      padananSheet
+        .getRange(2, 1, output.length, maxCols)
+        .setValues(output);
+
+      padananSheet
+        .getRange(2, 4, output.length, 1)
+        .setNumberFormat("dd/mm/yyyy");
+
+      padananSheet
+        .getRange(2, 13, output.length, 1)
+        .setNumberFormat("dd/mm/yyyy hh:mm:ss");
+    }
+
+    // Format asas
+    padananSheet
+      .getRange(2, 1, Math.max(output.length, 1), 1)
+      .setNumberFormat("0000");
+
+    padananSheet.autoResizeColumns(1, maxCols);
+
+    const percentage =
+      summary.total > 0
+        ? Math.round((summary.matched / summary.total) * 1000) / 10
+        : 0;
+
+    return {
+      success: true,
+      total: summary.total,
+      matched: summary.matched,
+      noMatch: summary.noMatch,
+      multiple: summary.multiple,
+      percentage: percentage,
+      age: summary.age,
+      dm: summary.dm,
+      locality: summary.locality,
+      sheetName: "Padanan KLB",
+      updatedAt: now.toISOString()
+    };
+
+  } finally {
+    try {
+      lock.releaseLock();
+    } catch (e) {}
+  }
+}
+
+function getPadananKLBStats(authToken) {
+  requireAdmin_(authToken);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Padanan KLB");
+
+  if (!sheet || sheet.getLastRow() < 2) {
+    return {
+      success: true,
+      exists: false,
+      total: 0,
+      matched: 0,
+      noMatch: 0,
+      multiple: 0,
+      percentage: 0,
+      age: {},
+      dm: {},
+      locality: {}
+    };
+  }
+
+  const lastRow = sheet.getLastRow();
+  const data = sheet.getRange(2, 1, lastRow - 1, 13).getValues();
+
+  const result = {
+    success: true,
+    exists: true,
+    total: data.length,
+    matched: 0,
+    noMatch: 0,
+    multiple: 0,
+    percentage: 0,
+    age: {},
+    dm: {},
+    locality: {}
+  };
+
+  data.forEach(function(row) {
+    const status = String(row[9] || "").trim();
+
+    if (status === "PADAN") {
+      result.matched++;
+    } else if (status === "PADANAN BERGANDA") {
+      result.multiple++;
+    } else {
+      result.noMatch++;
+    }
+
+    const age = Number(row[4]);
+    if (status === "PADAN" && age) {
+      const ageKey =
+        age >= 66 ? "66+" :
+        age >= 56 ? "56-65" :
+        age >= 46 ? "46-55" :
+        age >= 36 ? "36-45" :
+        age >= 26 ? "26-35" :
+        age >= 18 ? "18-25" :
+        "<18";
+
+      result.age[ageKey] =
+        (result.age[ageKey] || 0) + 1;
+    }
+
+    if (status === "PADAN") {
+      const dm = String(row[6] || "").trim();
+      const locality = String(row[7] || "").trim();
+
+      if (dm) {
+        result.dm[dm] = (result.dm[dm] || 0) + 1;
+      }
+
+      if (locality) {
+        result.locality[locality] =
+          (result.locality[locality] || 0) + 1;
+      }
+    }
+  });
+
+  result.percentage =
+    result.total > 0
+      ? Math.round((result.matched / result.total) * 1000) / 10
+      : 0;
+
+  return result;
+}
+
+
+
+/* ==========================================
+ * MASTER DATA - ADMIN ONLY
+ * ========================================== */
+function getMasterData(authToken) {
+  requireAdmin_(authToken);
+  return getDashboardData();
+}
+
+/* ==========================================
+ * BATAL CHECK-IN - ADMIN ONLY
+ * Rekod asal Check In dipadam dan tindakan
+ * direkodkan dalam Check In Audit.
+ * ========================================== */
+function cancelCheckIn(sourceSheetName, sourceRow, authToken) {
+  requireAdmin_(authToken);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sourceSheet = ss.getSheetByName(String(sourceSheetName || "").trim());
+  const rowNum = Number(sourceRow);
+
+  if (!sourceSheet || rowNum < 2 || rowNum > sourceSheet.getLastRow()) {
+    throw new Error("Rekod peserta tidak sah.");
+  }
+
+  const checkSheet = ss.getSheetByName("Check In");
+  if (!checkSheet || checkSheet.getLastRow() < 2) {
+    throw new Error("Peserta ini belum check-in.");
+  }
+
+  const checkData = checkSheet.getRange(2, 1, checkSheet.getLastRow() - 1, 6).getValues();
+  let foundIndex = -1;
+  let checkRow = null;
+
+  for (let i = 0; i < checkData.length; i++) {
+    if (String(checkData[i][3] || "").trim() === sourceSheet.getName() && Number(checkData[i][4] || 0) === rowNum) {
+      foundIndex = i + 2;
+      checkRow = checkData[i];
+      break;
+    }
+  }
+
+  if (foundIndex === -1) throw new Error("Peserta ini belum check-in.");
+
+  const participant = sourceSheet.getRange(rowNum, 1, 1, 7).getValues()[0];
+  const auditSheet = getOrCreateCheckInAuditSheet_(ss);
+
+  auditSheet.appendRow([
+    new Date(),
+    participant[0] || "",
+    participant[1] || "",
+    participant[2] || "",
+    participant[4] || "",
+    participant[5] || "",
+    sourceSheet.getName(),
+    rowNum,
+    checkRow[5] || "",
+    "BATAL CHECK-IN",
+    "ADMIN"
+  ]);
+
+  checkSheet.deleteRow(foundIndex);
+
+  return {
+    success: true,
+    message: "Check-in telah dibatalkan.",
+    sourceSheet: sourceSheet.getName(),
+    sourceRow: rowNum
+  };
+}
+
+function getOrCreateCheckInAuditSheet_(ss) {
+  let sheet = ss.getSheetByName("Check In Audit");
+  if (!sheet) sheet = ss.insertSheet("Check In Audit");
+
+  const headers = [
+    "TIMESTAMP TINDAKAN", "DUN", "NAMA", "NOMBOR TELEFON", "NO SIRI",
+    "KAUNTER", "SOURCE SHEET", "SOURCE ROW", "CHECK-IN ASAL", "TINDAKAN", "OLEH"
+  ];
+
+  const current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+  let needs = false;
+  headers.forEach(function(h, i) { if (String(current[i] || "").trim() !== h) needs = true; });
+  if (needs) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
+
+/*
+ * ==========================================================
+ * BRISK WALK 2026 - GITHUB FRONTEND API
+ * ==========================================================
+ *
+ * Frontend GitHub Pages boleh panggil Apps Script menggunakan:
+ *
+ *   ?page=api_dashboard
+ *   ?page=api_search&keyword=...&searchType=name
+ *   ?page=api_login&role=ADMIN&counter=ADMIN&password=...
+ *
+ * JSONP disokong melalui parameter:
+ *   &callback=namaFunction
+ *
+ * API ini TIDAK menggantikan fungsi Apps Script sedia ada.
+ * Ia hanya menjadi lapisan penghubung untuk frontend GitHub.
+ * ==========================================================
+ */
+
+function handleBriskApiRequest_(e) {
+  const params = (e && e.parameter) ? e.parameter : {};
+  const page = String(params.page || "").trim().toLowerCase();
+  const callback = String(params.callback || "").trim();
+
+  try {
+    let result;
+
+    switch (page) {
+      // ------------------------------------------
+      // PUBLIC
+      // ------------------------------------------
+      case "api_ping":
+        result = {
+          success: true,
+          system: "BRISK WALK 2026",
+          api: "github",
+          timestamp: new Date().toISOString()
+        };
+        break;
+
+      case "api_dun_list":
+        result = {
+          success: true,
+          dun: getDUNList()
+        };
+        break;
+
+      case "api_dun_stats":
+        result = getDUNStats();
+        break;
+
+      case "api_dashboard":
+        result = getDashboardData();
+        break;
+
+      case "api_search":
+        result = searchParticipants(
+          params.keyword || "",
+          params.searchType || "name"
+        );
+        break;
+
+      case "api_register":
+        result = registerParticipant({
+          dun: params.dun || "",
+          nama: params.nama || "",
+          telefon: params.telefon || ""
+        });
+        break;
+
+      // ------------------------------------------
+      // AUTHENTICATION
+      // ------------------------------------------
+      case "api_login":
+        result = authenticateUser(
+          params.role || "",
+          params.counter || "",
+          params.password || ""
+        );
+        break;
+
+      case "api_auth":
+        result = getAuthContext(params.token || params.authToken || "");
+        break;
+
+      case "api_logout":
+        result = logoutUser(params.token || params.authToken || "");
+        break;
+
+      // ------------------------------------------
+      // ADMIN / AUTHENTICATED
+      // ------------------------------------------
+      case "api_master":
+        result = getMasterData(params.token || params.authToken || "");
+        break;
+
+      case "api_participants":
+        result = getParticipantsByDUN(
+          params.dun || "",
+          params.token || params.authToken || ""
+        );
+        break;
+
+      case "api_counter":
+        result = getParticipantsByCounter(
+          params.counter || "",
+          params.token || params.authToken || ""
+        );
+        break;
+
+      case "api_checkin":
+        result = handleBriskApiCheckIn_(params);
+        break;
+
+      case "api_cancel_checkin":
+        result = cancelCheckIn(
+          params.sourceSheet || "",
+          params.sourceRow || "",
+          params.token || params.authToken || ""
+        );
+        break;
+
+      case "api_padanan_run":
+        result = runPadananKLB(
+          params.token || params.authToken || ""
+        );
+        break;
+
+      case "api_padanan_stats":
+        result = getPadananKLBStats(
+          params.token || params.authToken || ""
+        );
+        break;
+
+      default:
+        throw new Error("API route tidak dikenali: " + page);
+    }
+
+    return briskApiResponse_(result, callback);
+
+  } catch (error) {
+    return briskApiResponse_({
+      success: false,
+      message: error && error.message
+        ? error.message
+        : String(error)
+    }, callback);
+  }
+}
+
+
+/**
+ * Check-in API.
+ *
+ * Single participant:
+ *   sourceSheet=Bil%20KLB&sourceRow=540
+ *
+ * Batch participant JSON:
+ *   participants=[{"sourceSheet":"Bil KLB","sourceRow":540},...]
+ *
+ * Token wajib untuk kedua-dua mode.
+ */
+function handleBriskApiCheckIn_(params) {
+  const token = String(
+    params.token || params.authToken || ""
+  ).trim();
+
+  let selected = [];
+
+  if (params.participants) {
+    try {
+      selected = JSON.parse(String(params.participants));
+    } catch (err) {
+      throw new Error("Format participants JSON tidak sah.");
+    }
+  }
+
+  if (!Array.isArray(selected) || selected.length === 0) {
+    const sourceSheet = String(
+      params.sourceSheet || ""
+    ).trim();
+    const sourceRow = Number(
+      params.sourceRow || 0
+    );
+
+    if (!sourceSheet || !sourceRow) {
+      throw new Error("Maklumat peserta untuk check-in tidak lengkap.");
+    }
+
+    selected = [{
+      sourceSheet: sourceSheet,
+      sourceRow: sourceRow
+    }];
+  }
+
+  return checkInParticipants(selected, token);
+}
+
+
+/**
+ * JSON / JSONP response helper.
+ *
+ * Callback hanya menerima nama JavaScript yang selamat.
+ * Jika callback tiada, API pulangkan JSON biasa.
+ */
+function briskApiResponse_(data, callback) {
+  const json = JSON.stringify(data, function(key, value) {
+    // Elakkan aksara tertentu memecahkan konteks JavaScript.
+    if (typeof value === "string") {
+      return value
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/\\u2028/g, "\\\\u2028")
+        .replace(/\\u2029/g, "\\\\u2029");
+    }
+    return value;
+  });
+
+  const safeJson = json || "null";
+
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$]*(?:\.[A-Za-z_$][0-9A-Za-z_$]*)*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + "(" + safeJson + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return ContentService
+    .createTextOutput(safeJson)
+    .setMimeType(ContentService.MimeType.JSON);
+}
