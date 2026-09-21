@@ -122,7 +122,7 @@ async function authenticate(){
   if(!token){location.href='login.html?target=padananklb';return false}
   try{
     const r=await apiJSONP('api_auth',{token});
-    if(!r||!r.success||!r.authenticated){clearToken();location.href='login.html?target=padananklb';return false}
+    if(!r||r.authenticated!==true){clearToken();location.href='login.html?target=padananklb';return false}
     if(String(r.role||'').toUpperCase()!=='ADMIN'){setStatus('❌ Akses ditolak. Halaman ini memerlukan akaun ADMIN.');document.getElementById('runBtn').disabled=true;return false}
     if(r.token)saveToken(r.token);
     return true;
