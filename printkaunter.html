@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brisk Walk 2026 — Print Kaunter</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#07111f;
+  --panel:rgba(15,27,45,.94);
+  --line:rgba(255,255,255,.09);
+  --text:#f4f8ff;
+  --muted:#9fb0c7;
+  --blue:#35a7ff;
+  --green:#39d98a;
+  --orange:#ffb454;
+  --red:#ff647c;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 8% 5%,rgba(53,167,255,.13),transparent 30%),
+    radial-gradient(circle at 92% 90%,rgba(57,217,138,.10),transparent 30%),
+    linear-gradient(135deg,#06101d,#0a1728 55%,#07111f);
+}
+button,select{font:inherit}
+.page{width:min(1180px,100%);margin:auto;padding:22px}
+
+.top{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:18px
+}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{
+  width:50px;height:50px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--blue),var(--green));
+  color:#06111d;font-weight:950;font-size:20px
+}
+.eyebrow{color:var(--green);font-size:10px;letter-spacing:1.8px;font-weight:900}
+.title{font-size:25px;font-weight:900;margin-top:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{
+  height:42px;padding:0 14px;border:1px solid var(--line);border-radius:12px;
+  background:rgba(255,255,255,.05);color:#e5effc;font-weight:800;cursor:pointer
+}
+.btn:hover{background:rgba(255,255,255,.09)}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);backdrop-filter:blur(16px)
+}
+.controls{padding:20px;margin-bottom:16px}
+.control-grid{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end
+}
+.field label{
+  display:block;font-size:10px;font-weight:900;color:#b9c8da;
+  margin-bottom:7px;letter-spacing:.6px
+}
+select{
+  width:100%;height:46px;border-radius:13px;border:1px solid var(--line);
+  background:#091625;color:var(--text);padding:0 13px;outline:none;font-weight:750
+}
+select:focus{border-color:rgba(53,167,255,.7);box-shadow:0 0 0 3px rgba(53,167,255,.1)}
+.action{
+  height:46px;padding:0 18px;border:0;border-radius:13px;cursor:pointer;font-weight:900
+}
+.load{background:linear-gradient(135deg,var(--blue),var(--green));color:#06111d}
+.print{background:rgba(57,217,138,.12);color:var(--green);border:1px solid rgba(57,217,138,.25)}
+.action:disabled{opacity:.45;cursor:not-allowed}
+
+.summary{
+  display:none;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px
+}
+.stat{
+  padding:17px;border-radius:18px;background:rgba(20,36,58,.82);
+  border:1px solid var(--line)
+}
+.label{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.6px}
+.value{font-size:27px;font-weight:950;margin-top:6px}
+.blue{color:var(--blue)}.green{color:var(--green)}.orange{color:var(--orange)}
+
+.progress{
+  display:none;padding:16px 18px;margin-bottom:16px
+}
+.progressTop{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px}
+.progressTitle{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.7px}
+.progressPct{font-size:12px;color:var(--green);font-weight:950}
+.track{height:9px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--green));transition:.35s}
+
+.printpanel{overflow:hidden}
+.printHead{
+  padding:18px 20px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;gap:12px
+}
+.printHeadTitle{font-size:17px;font-weight:900}
+.printHeadMeta{font-size:11px;color:var(--muted);margin-top:3px}
+.printArea{padding:22px}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.emptyIcon{font-size:36px;margin-bottom:9px}
+.loading{display:flex;justify-content:center;align-items:center;gap:8px;padding:55px;color:var(--muted);font-weight:800}
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,.18);
+  border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.sheet{
+  background:white;color:#111827;border-radius:15px;padding:25px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18)
+}
+.sheetHeader{text-align:center;border-bottom:2px solid #111827;padding-bottom:15px;margin-bottom:16px}
+.eventTitle{font-size:24px;font-weight:950;letter-spacing:.4px}
+.sheetTitle{font-size:18px;font-weight:900;margin-top:4px}
+.sheetMeta{font-size:11px;color:#64748b;margin-top:5px}
+
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{
+  background:#e2e8f0;color:#0f172a;font-size:10px;font-weight:950;
+  padding:8px 7px;border:1px solid #cbd5e1;text-align:left
+}
+td{padding:7px;border:1px solid #cbd5e1;font-size:11px;height:30px}
+th:first-child,td:first-child{width:45px;text-align:center}
+th:nth-child(2),td:nth-child(2){width:85px}
+th:nth-child(4),td:nth-child(4){width:90px}
+.serial{font-weight:950;letter-spacing:.4px}
+.name{font-weight:750}
+.dun{font-size:10px;font-weight:800;color:#475569}
+.status{
+  display:inline-flex;padding:4px 7px;border-radius:7px;font-size:8px;font-weight:950
+}
+.hadir{background:#dcfce7;color:#166534}
+.belum{background:#fef3c7;color:#92400e}
+
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  opacity:0;pointer-events:none;padding:12px 16px;border-radius:13px;
+  background:#101f33;border:1px solid var(--line);box-shadow:0 15px 40px rgba(0,0,0,.35);
+  font-size:12px;font-weight:800;z-index:2000;transition:.25s
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.footer{text-align:center;color:#70829a;font-size:11px;padding:18px 0 8px}
+
+@media(max-width:850px){
+  .control-grid{grid-template-columns:1fr 1fr}
+  .control-grid .field{grid-column:1/-1}
+  .summary{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .page{padding:13px}.top{align-items:flex-start;flex-direction:column}
+  .actions{justify-content:flex-start}.control-grid{grid-template-columns:1fr}
+  .control-grid .field{grid-column:auto}.action{width:100%}
+  .summary{grid-template-columns:1fr 1fr}.printArea{padding:10px}
+  .sheet{padding:12px;border-radius:10px}.eventTitle{font-size:18px}.sheetTitle{font-size:14px}
+  table{min-width:620px}.printArea{overflow:auto}
+}
+
+@media print{
+  body{background:white;color:#111827}
+  .page{width:100%;padding:0;margin:0}
+  .top,.controls,.summary,.progress,.printHead,.footer,.toast{display:none!important}
+  .panel{border:0;box-shadow:none;background:white}
+  .printpanel{overflow:visible}
+  .printArea{padding:0;overflow:visible}
+  .sheet{box-shadow:none;border-radius:0;padding:0}
+  .sheetHeader{margin-bottom:12px}
+  table{page-break-inside:auto}
+  tr{page-break-inside:avoid;page-break-after:auto}
+  thead{display:table-header-group}
+  th{background:#e2e8f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 portrait;margin:10mm}
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">BW</div>
+    <div>
+      <div class="eyebrow">BRISK WALK 2026</div>
+      <div class="title">Senarai Peserta Kaunter</div>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="index.html">🏠 HOME</a>
+    <a class="btn" href="search.html">🔎 CARIAN</a>
+    <button class="btn" onclick="logout()">↩ LOGOUT</button>
+  </div>
+</header>
+
+<section class="panel controls">
+  <div class="control-grid">
+    <div class="field">
+      <label>PILIH KAUNTER</label>
+      <select id="counterSelect">
+        <option value="">-- Pilih Kaunter --</option>
+        <option value="1">KAUNTER 1 · 0001–0100</option>
+        <option value="2">KAUNTER 2 · 0101–0200</option>
+        <option value="3">KAUNTER 3 · 0201–0300</option>
+        <option value="4">KAUNTER 4 · 0301–0400</option>
+        <option value="5">KAUNTER 5 · 0401–0500</option>
+        <option value="6">KAUNTER 6 · 0501–0600</option>
+        <option value="7">KAUNTER 7 · 0601–0700</option>
+        <option value="8">KAUNTER 8 · 0701–0800</option>
+        <option value="9">KAUNTER 9 · 0801–0900</option>
+        <option value="10">KAUNTER 10 · 0901–1000</option>
+        <option value="11">KAUNTER 11 · 1001–1100</option>
+        <option value="12">KAUNTER 12 · 1101–1200</option>
+        <option value="13">KAUNTER 13 · 1201–1300</option>
+        <option value="14">KAUNTER 14 · 1301–1400</option>
+        <option value="15">KAUNTER 15 · 1401–1500</option>
+        <option value="16">KAUNTER 16 · 1501–1600</option>
+      </select>
+    </div>
+
+    <button class="action load" id="loadBtn" onclick="loadCounter()">📋 PAPAR SENARAI</button>
+    <button class="action print" id="printBtn" onclick="window.print()" disabled>🖨️ PRINT</button>
+  </div>
+</section>
+
+<section class="summary" id="summary">
+  <div class="stat"><div class="label">JUMLAH PESERTA</div><div class="value blue" id="statTotal">0</div></div>
+  <div class="stat"><div class="label">SUDAH HADIR</div><div class="value green" id="statHadir">0</div></div>
+  <div class="stat"><div class="label">BELUM HADIR</div><div class="value orange" id="statPending">0</div></div>
+  <div class="stat"><div class="label">KEHADIRAN</div><div class="value green" id="statPct">0%</div></div>
+</section>
+
+<section class="panel progress" id="progress">
+  <div class="progressTop">
+    <div class="progressTitle">STATUS KEHADIRAN KAUNTER</div>
+    <div class="progressPct" id="progressPct">0%</div>
+  </div>
+  <div class="track"><div class="fill" id="progressFill"></div></div>
+</section>
+
+<section class="panel printpanel">
+  <div class="printHead">
+    <div>
+      <div class="printHeadTitle" id="headTitle">Senarai belum dipaparkan</div>
+      <div class="printHeadMeta" id="headMeta">Pilih kaunter untuk melihat data.</div>
+    </div>
+    <button class="btn" onclick="loadCounter()">🔄 REFRESH</button>
+  </div>
+  <div class="printArea" id="printArea">
+    <div class="empty"><div class="emptyIcon">🖨️</div><div>Pilih kaunter untuk memaparkan senarai peserta.</div></div>
+  </div>
+</section>
+
+<div class="footer">Brisk Walk 2026 • Counter Participant List</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+
+const TOKEN_KEY = "BRISK_AUTH_TOKEN";
+let toastTimer = null;
+let currentParticipants = [];
+
+function getToken(){
+  return sessionStorage.getItem(TOKEN_KEY) ||
+         localStorage.getItem(TOKEN_KEY) || "";
+}
+
+function apiJSONP(page,params={}){
+  return new Promise((resolve,reject)=>{
+    const callbackName =
+      "bwPrint_" + Date.now() + "_" +
+      Math.random().toString(36).slice(2);
+
+    const script=document.createElement("script");
+    const query=new URLSearchParams({
+      page,...params,callback:callbackName
+    });
+
+    const timer=setTimeout(()=>{
+      cleanup();
+      reject(new Error("API timeout."));
+    },15000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[callbackName];
+      script.remove();
+    }
+
+    window[callbackName]=data=>{
+      cleanup(); resolve(data);
+    };
+
+    script.onerror=()=>{
+      cleanup();
+      reject(new Error("Tidak dapat menghubungi server."));
+    };
+
+    script.src=API_URL+"?"+query.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function ensureAuth(){
+  const token=getToken();
+
+  if(!token){
+    window.location.href="login.html";
+    return null;
+  }
+
+  try{
+    const data=await apiJSONP("api_auth",{token});
+
+    if(!data || !data.success || data.authenticated!==true){
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href="login.html";
+      return null;
+    }
+
+    return {
+      role:String(data.role||"").toUpperCase(),
+      counter:String(data.counter||"").toUpperCase()
+    };
+
+  }catch(error){
+    showToast(error.message||"Sesi tidak dapat disahkan.");
+    return null;
+  }
+}
+
+function setupCounterAccess(ctx){
+  const select=document.getElementById("counterSelect");
+
+  if(ctx.role==="URUSETIA"){
+    const own=String(ctx.counter||"").replace("KAUNTER ","");
+    select.value=own;
+
+    Array.from(select.options).forEach(opt=>{
+      if(opt.value && opt.value!==own) opt.disabled=true;
+    });
+  }
+}
+
+async function loadCounter(){
+
+  const counter=document.getElementById("counterSelect").value;
+
+  if(!counter){
+    showToast("Sila pilih kaunter dahulu.");
+    return;
+  }
+
+  const ctx=await ensureAuth();
+  if(!ctx) return;
+
+  if(ctx.role==="URUSETIA"){
+    const own=String(ctx.counter||"").replace("KAUNTER ","");
+    if(String(counter)!==own){
+      showToast("Akaun ini hanya dibenarkan untuk KAUNTER "+own+".");
+      return;
+    }
+  }
+
+  const btn=document.getElementById("loadBtn");
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> MEMUAT...';
+
+  document.getElementById("printBtn").disabled=true;
+  document.getElementById("summary").style.display="none";
+  document.getElementById("progress").style.display="none";
+
+  document.getElementById("printArea").innerHTML=
+    '<div class="loading"><span class="spinner"></span> Sedang mengambil senarai peserta...</div>';
+
+  try{
+
+    const data=await apiJSONP("api_counter",{
+      counter,
+      token:getToken()
+    });
+
+    if(!data || !data.success){
+      throw new Error(data?.message || "Gagal mendapatkan senarai peserta.");
+    }
+
+    renderParticipants(data);
+
+  }catch(error){
+
+    currentParticipants=[];
+
+    document.getElementById("printArea").innerHTML=
+      `<div class="empty">
+        <div class="emptyIcon">⚠️</div>
+        <div>${escapeHtml(error.message||"Gagal mendapatkan data.")}</div>
+      </div>`;
+
+    showToast(error.message||"Gagal mendapatkan data.");
+
+  }finally{
+
+    btn.disabled=false;
+    btn.textContent="📋 PAPAR SENARAI";
+  }
+}
+
+function renderParticipants(data){
+
+  currentParticipants=Array.isArray(data.participants)
+    ? data.participants : [];
+
+  const total=currentParticipants.length;
+  const hadir=currentParticipants.filter(x=>!!x.checkedIn).length;
+  const pending=Math.max(0,total-hadir);
+  const pct=total ? Math.round(hadir/total*1000)/10 : 0;
+
+  document.getElementById("summary").style.display="grid";
+  document.getElementById("statTotal").textContent=total;
+  document.getElementById("statHadir").textContent=hadir;
+  document.getElementById("statPending").textContent=pending;
+  document.getElementById("statPct").textContent=pct.toFixed(1)+"%";
+
+  document.getElementById("progress").style.display="block";
+  document.getElementById("progressPct").textContent=pct.toFixed(1)+"%";
+  document.getElementById("progressFill").style.width=pct+"%";
+
+  const label=data.counterLabel || ("KAUNTER "+data.counter);
+
+  document.getElementById("headTitle").textContent=
+    "SENARAI PESERTA · "+label;
+
+  document.getElementById("headMeta").textContent=
+    total+" peserta • "+hadir+" hadir • "+pending+" belum hadir";
+
+  document.getElementById("printBtn").disabled=total===0;
+
+  if(!total){
+    document.getElementById("printArea").innerHTML=
+      `<div class="empty">
+        <div class="emptyIcon">👥</div>
+        <div>Tiada peserta untuk ${escapeHtml(label)}.</div>
+      </div>`;
+    return;
+  }
+
+  let rows="";
+
+  currentParticipants.forEach((item,index)=>{
+    rows+=`
+      <tr>
+        <td>${index+1}</td>
+        <td><span class="serial">${escapeHtml(item.serial||"—")}</span></td>
+        <td><span class="name">${escapeHtml(item.nama||"—")}</span></td>
+        <td><span class="dun">${escapeHtml(item.shortName||item.dun||"—")}</span></td>
+        <td>
+          ${
+            item.checkedIn
+              ? '<span class="status hadir">✓ HADIR</span>'
+              : '<span class="status belum">BELUM HADIR</span>'
+          }
+        </td>
+      </tr>`;
+  });
+
+  document.getElementById("printArea").innerHTML=`
+    <div class="sheet">
+      <div class="sheetHeader">
+        <div class="eventTitle">BRISK WALK 2026</div>
+        <div class="sheetTitle">SENARAI PESERTA · ${escapeHtml(label)}</div>
+        <div class="sheetMeta">
+          Jumlah Peserta: ${total} &nbsp;•&nbsp;
+          Sudah Hadir: ${hadir} &nbsp;•&nbsp;
+          Belum Hadir: ${pending}
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>NO SIRI</th>
+            <th>NAMA</th>
+            <th>DUN</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+
+  showToast("Senarai "+label+" berjaya dimuatkan.");
+}
+
+async function logout(){
+
+  const token=getToken();
+
+  if(token){
+    apiJSONP("api_logout",{token}).catch(()=>{});
+  }
+
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.href="login.html";
+}
+
+function showToast(message){
+  const toast=document.getElementById("toast");
+  toast.textContent=message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),2800);
+}
+
+function escapeHtml(value){
+  return String(value??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+(async function init(){
+  const ctx=await ensureAuth();
+  if(ctx){
+    setupCounterAccess(ctx);
+
+    const params=new URLSearchParams(window.location.search);
+    const counter=params.get("counter");
+
+    if(counter){
+      document.getElementById("counterSelect").value=counter;
+      loadCounter();
+    }
+  }
+})();
+</script>
+</body>
+</html>
