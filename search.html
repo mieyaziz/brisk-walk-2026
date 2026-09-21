@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brisk Walk 2026 · Semakan</title>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      color:#0f172a;
+      background:
+        radial-gradient(circle at 10% 8%,#dbeafe,transparent 34%),
+        radial-gradient(circle at 90% 92%,#dcfce7,transparent 34%),
+        #f8fafc;
+      padding:24px 12px 40px;
+    }
+    .wrap{width:100%;max-width:980px;margin:auto}
+    .top{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:14px;margin-bottom:20px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-icon{
+      width:54px;height:54px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;
+      background:#0f172a;color:#fff;font-size:27px;
+      box-shadow:0 12px 28px rgba(15,23,42,.15);
+    }
+    .brand h1{margin:0;font-size:23px;letter-spacing:-.6px}
+    .brand p{margin:4px 0 0;color:#64748b;font-size:11px}
+    .status{
+      display:flex;align-items:center;gap:7px;
+      padding:8px 11px;border-radius:999px;
+      background:rgba(255,255,255,.85);
+      border:1px solid #e2e8f0;
+      color:#64748b;font-size:10px;white-space:nowrap;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#22c55e;
+      box-shadow:0 0 0 4px rgba(34,197,94,.1);
+    }
+    .dot.off{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.1)}
+
+    .search-card{
+      background:rgba(255,255,255,.96);
+      border:1px solid #eef2f7;border-radius:26px;
+      padding:24px;
+      box-shadow:0 20px 50px rgba(15,23,42,.09);
+    }
+    .title{font-size:20px;font-weight:800}
+    .sub{font-size:12px;color:#64748b;margin-top:4px;margin-bottom:17px}
+    .types{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:7px;padding:5px;background:#f1f5f9;
+      border-radius:14px;margin-bottom:11px;
+    }
+    .types button{
+      border:0;background:transparent;color:#64748b;
+      border-radius:10px;padding:10px 8px;
+      font-size:11px;font-weight:800;cursor:pointer;
+    }
+    .types button.active{background:#fff;color:#0f172a;box-shadow:0 4px 12px rgba(15,23,42,.08)}
+    .search-row{display:grid;grid-template-columns:1fr 135px;gap:9px}
+    input{
+      width:100%;height:51px;border:1px solid #e2e8f0;
+      border-radius:14px;background:#f8fafc;
+      padding:0 14px;font-size:14px;outline:none;color:#0f172a;
+    }
+    input:focus{background:#fff;border-color:#0f172a;box-shadow:0 0 0 4px rgba(15,23,42,.05)}
+    .primary{
+      border:0;border-radius:14px;background:#0f172a;color:#fff;
+      font-weight:800;cursor:pointer;
+    }
+    .primary:disabled{opacity:.6;cursor:not-allowed}
+
+    .qr-area{
+      margin-top:11px;padding:13px;
+      border:1px dashed #cbd5e1;border-radius:16px;
+      background:rgba(255,255,255,.75);text-align:center;
+    }
+    .scan-btn{
+      border:0;border-radius:12px;background:#0f172a;color:#fff;
+      padding:11px 16px;font-size:12px;font-weight:800;cursor:pointer;
+    }
+    .qr-hint{margin-top:6px;color:#64748b;font-size:10px}
+
+    .header-row{
+      display:none;align-items:center;justify-content:space-between;
+      margin:24px 2px 10px;font-size:12px;font-weight:800;color:#475569;
+    }
+
+    .result{
+      background:#fff;border:1px solid #eef2f7;border-radius:22px;
+      padding:18px;margin-top:10px;
+      box-shadow:0 10px 25px rgba(15,23,42,.06);
+      display:grid;grid-template-columns:1fr auto auto;
+      gap:16px;align-items:center;
+    }
+    .result.checked{border-color:#bbf7d0;background:#f7fff9}
+    .name{font-size:17px;font-weight:800;margin-bottom:7px;word-break:break-word}
+    .meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+    .badge{
+      display:inline-flex;align-items:center;
+      padding:5px 8px;border-radius:8px;
+      background:#f1f5f9;color:#475569;font-size:10px;font-weight:800;
+    }
+    .serial{background:#0f172a;color:#fff}
+    .counter{background:#dbeafe;color:#1d4ed8}
+    .phone{font-size:11px;color:#64748b}
+    .status{text-align:right;min-width:115px}
+    .status-badge{
+      display:inline-block;padding:7px 9px;
+      border-radius:9px;font-size:9px;font-weight:900;
+    }
+    .checked-badge{background:#dcfce7;color:#15803d}
+    .pending-badge{background:#fff7ed;color:#c2410c}
+    .check-time{font-size:9px;color:#64748b;margin-top:5px}
+
+    .qr-wrap{
+      width:160px;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+    }
+    .qr-box{
+      width:145px;height:145px;padding:8px;
+      background:#fff;border:1px solid #e2e8f0;
+      border-radius:14px;display:flex;align-items:center;justify-content:center;
+    }
+    .qr-box img{width:129px;height:129px;object-fit:contain;display:block}
+    .qr-label{font-size:8px;font-weight:900;letter-spacing:1.3px;color:#94a3b8;margin-top:6px}
+    .qr-empty{
+      width:145px;height:145px;border:2px dashed #cbd5e1;
+      border-radius:14px;display:flex;align-items:center;justify-content:center;
+      font-size:32px;color:#94a3b8;background:#f8fafc;
+    }
+
+    .message{
+      display:none;text-align:center;padding:30px;
+      margin-top:12px;background:#fff;border-radius:20px;
+      color:#64748b;font-size:13px;
+    }
+    .success{
+      display:none;margin-top:12px;padding:13px 15px;
+      border-radius:14px;background:#f0fdf4;border:1px solid #bbf7d0;
+      color:#166534;font-size:12px;font-weight:700;
+    }
+
+    .staff{
+      display:none;margin-top:14px;background:#fff;
+      border:1px solid #e2e8f0;border-radius:20px;padding:17px;
+      box-shadow:0 10px 25px rgba(15,23,42,.06);
+    }
+    .staff-title{font-size:14px;font-weight:900;margin-bottom:5px}
+    .staff-sub{font-size:11px;color:#64748b;line-height:1.5;margin-bottom:11px}
+    .staff-note{padding:11px 13px;border-radius:12px;background:#f8fafc;color:#475569;font-size:11px;line-height:1.55}
+    .staff-note.warning{background:#fff7ed;color:#9a3412}
+    .staff-note.success{background:#f0fdf4;color:#166534}
+    .checkin-btn{
+      width:100%;margin-top:10px;border:0;border-radius:12px;
+      padding:12px;background:#22c55e;color:#fff;font-weight:900;cursor:pointer;
+    }
+    .checkin-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .modal{
+      display:none;position:fixed;inset:0;z-index:9999;
+      background:rgba(15,23,42,.58);
+      align-items:center;justify-content:center;padding:18px;
+    }
+    .modal-card{
+      width:min(430px,100%);background:#fff;border-radius:22px;
+      padding:23px;box-shadow:0 25px 70px rgba(15,23,42,.25);text-align:center;
+    }
+    .modal-icon{font-size:40px}
+    .modal-title{font-size:19px;font-weight:900;margin:6px 0}
+    .modal-detail{font-size:12px;color:#64748b;line-height:1.6;margin:8px 0 18px}
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .modal-actions button{border:0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer}
+    .cancel{background:#f1f5f9;color:#334155}
+    .confirm{background:#22c55e;color:#fff}
+
+    .scanner{
+      display:none;position:fixed;inset:0;z-index:10000;
+      background:rgba(15,23,42,.72);
+      align-items:center;justify-content:center;padding:16px;
+    }
+    .scanner-card{
+      width:min(460px,100%);background:#fff;border-radius:22px;padding:17px;
+      box-shadow:0 25px 70px rgba(0,0,0,.25);
+    }
+    .scanner-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+    .scanner-title{font-size:17px;font-weight:900}
+    .close{
+      width:36px;height:36px;border:0;border-radius:10px;
+      background:#f1f5f9;cursor:pointer;font-size:17px;
+    }
+    #qrReader{width:100%;overflow:hidden;border-radius:15px;background:#0f172a}
+    .scanner-status{
+      margin-top:9px;padding:9px;border-radius:11px;
+      background:#f1f5f9;color:#475569;text-align:center;font-size:11px;font-weight:700;
+    }
+
+    .footer{text-align:center;color:#94a3b8;font-size:10px;margin-top:22px}
+
+    @media(max-width:700px){
+      .result{grid-template-columns:1fr}
+      .status{text-align:left}
+      .qr-wrap{width:100%;align-items:flex-start}
+      .search-row{grid-template-columns:1fr}
+      .primary{height:50px}
+    }
+    @media(max-width:500px){
+      body{padding:17px 9px 30px}
+      .brand h1{font-size:19px}
+      .brand p{font-size:10px}
+      .brand-icon{width:48px;height:48px}
+      .status{font-size:9px}
+      .search-card{padding:19px}
+      .types{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="brand-icon">🔎</div>
+      <div>
+        <h1>BRISK WALK 2026</h1>
+        <p>Semakan Peserta · Check-in & QR</p>
+      </div>
+    </div>
+    <div class="status">
+      <span id="apiDot" class="dot"></span>
+      <span id="apiStatus">Menyambung...</span>
+    </div>
+  </div>
+
+  <div class="search-card">
+    <div class="title">Cari Peserta</div>
+    <div class="sub">Cari menggunakan nama, nombor telefon atau No Siri.</div>
+
+    <div class="types">
+      <button id="typeName" class="active" onclick="setSearchType('name')">👤 NAMA</button>
+      <button id="typePhone" onclick="setSearchType('phone')">📱 NO TELEFON</button>
+      <button id="typeSerial" onclick="setSearchType('serial')">🎫 NO SIRI</button>
+    </div>
+
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Contoh: AZMI" autocomplete="off">
+      <button id="searchBtn" class="primary" onclick="search()">🔎 CARI</button>
+    </div>
+  </div>
+
+  <div class="qr-area">
+    <button class="scan-btn" onclick="openQrScanner()">📷 SCAN QR PESERTA</button>
+    <div class="qr-hint">Khas untuk Urusetia / Admin · Login dahulu sebelum check-in.</div>
+  </div>
+
+  <div id="successMessage" class="success"></div>
+
+  <div id="resultHeader" class="header-row">
+    <span id="resultCount"></span>
+    <span>Semakan database</span>
+  </div>
+
+  <div id="results"></div>
+
+  <div id="empty" class="message">
+    🔎<br><br>Tiada peserta dijumpai.
+  </div>
+
+  <div id="staffPanel" class="staff">
+    <div class="staff-title">📷 Mod Urusetia</div>
+    <div id="staffSub" class="staff-sub">Semakan QR peserta.</div>
+    <div id="staffNote" class="staff-note"></div>
+    <button id="checkinBtn" class="checkin-btn" style="display:none" onclick="openConfirm()">✓ CHECK-IN SEKARANG</button>
+  </div>
+
+  <div id="confirmModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-icon">✅</div>
+      <div class="modal-title">Sahkan Check-in</div>
+      <div id="confirmDetail" class="modal-detail"></div>
+      <div class="modal-actions">
+        <button class="cancel" onclick="closeConfirm()">BATAL</button>
+        <button id="confirmBtn" class="confirm" onclick="confirmCheckin()">YA, CHECK-IN</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scannerModal" class="scanner">
+    <div class="scanner-card">
+      <div class="scanner-head">
+        <div class="scanner-title">📷 Scan QR Peserta</div>
+        <button class="close" onclick="closeScanner()">✕</button>
+      </div>
+      <div id="qrReader"></div>
+      <div id="scannerStatus" class="scanner-status">Halakan kamera ke QR peserta.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Brisk Walk 2026 · Frontend GitHub Pages · Backend Apps Script
+  </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+
+const API_TIMEOUT = 15000;
+let jsonpCounter = 0;
+let currentSearchType = "name";
+let currentResults = [];
+let qrScanner = null;
+let qrScannerRunning = false;
+let staffItem = null;
+let staffContext = null;
+
+function apiJSONP(page, params = {}) {
+  return new Promise((resolve, reject) => {
+    const cb = "briskSearch_" + Date.now() + "_" + (++jsonpCounter);
+    const script = document.createElement("script");
+    let finished = false;
+
+    function cleanup() {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+    }
+
+    const timer = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(new Error("Sambungan ke server mengambil masa terlalu lama."));
+    }, API_TIMEOUT);
+
+    window[cb] = data => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(new Error("API Brisk Walk tidak dapat dicapai."));
+    };
+
+    const q = new URLSearchParams();
+    q.set("page", page);
+    q.set("callback", cb);
+
+    Object.keys(params).forEach(k => {
+      if (params[k] !== undefined && params[k] !== null) {
+        q.set(k, String(params[k]));
+      }
+    });
+
+    script.src = API_URL + "?" + q.toString();
+    document.head.appendChild(script);
+  });
+}
+
+function setStatus(ok, text) {
+  document.getElementById("apiDot").classList.toggle("off", !ok);
+  document.getElementById("apiStatus").textContent =
+    text || (ok ? "Sistem online" : "Sistem offline");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function setSearchType(type) {
+  currentSearchType = type;
+
+  ["typeName","typePhone","typeSerial"].forEach(id =>
+    document.getElementById(id).classList.remove("active")
+  );
+
+  const map = {
+    name:"typeName",
+    phone:"typePhone",
+    serial:"typeSerial"
+  };
+
+  document.getElementById(map[type]).classList.add("active");
+
+  const input = document.getElementById("searchInput");
+
+  if (type === "name") {
+    input.placeholder = "Contoh: AZMI";
+    input.inputMode = "text";
+  } else if (type === "phone") {
+    input.placeholder = "Contoh: 0123456789";
+    input.inputMode = "tel";
+  } else {
+    input.placeholder = "Contoh: 0001 atau 1500";
+    input.inputMode = "numeric";
+  }
+
+  input.value = "";
+  input.focus();
+}
+
+async function search() {
+  const input = document.getElementById("searchInput");
+  const keyword = input.value.trim();
+
+  if (!keyword) {
+    showEmptyMessage(
+      currentSearchType === "name"
+        ? "Sila masukkan nama peserta."
+        : currentSearchType === "phone"
+          ? "Sila masukkan nombor telefon."
+          : "Sila masukkan No Siri."
+    );
+    return;
+  }
+
+  setSearchLoading(true);
+  hideMessages();
+
+  try {
+    const result = await apiJSONP("api_search", {
+      keyword: keyword,
+      searchType: currentSearchType
+    });
+
+    console.log("BRISK API SEARCH:", result);
+
+    if (!result || result.success === false) {
+      throw new Error(result?.message || "Carian gagal.");
+    }
+
+    currentResults = Array.isArray(result.results) ? result.results : [];
+    renderResults(currentResults);
+
+    setStatus(true, "Sistem online · carian berjaya");
+
+  } catch (err) {
+    console.error(err);
+    setStatus(false, "API tidak dapat dicapai");
+    showEmptyMessage(err.message || "Ralat semasa membuat carian.");
+  } finally {
+    setSearchLoading(false);
+  }
+}
+
+function renderResults(results) {
+  const container = document.getElementById("results");
+  const header = document.getElementById("resultHeader");
+  const count = document.getElementById("resultCount");
+  const empty = document.getElementById("empty");
+
+  container.innerHTML = "";
+  closeStaffPanel();
+
+  if (!results.length) {
+    header.style.display = "none";
+    empty.style.display = "block";
+    empty.innerHTML = "🔎<br><br>Tiada peserta dijumpai.";
+    return;
+  }
+
+  empty.style.display = "none";
+  header.style.display = "flex";
+  count.textContent = results.length + " PESERTA DIJUMPAI";
+
+  results.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "result" + (item.checkedIn ? " checked" : "");
+
+    const serial = item.serial || "";
+    const counter = item.counter || "";
+    const phone = item.telefon || "";
+    const dun = item.dun || "";
+
+    card.innerHTML = `
+      <div>
+        <div class="name">${escapeHtml(item.nama)}</div>
+        <div class="meta">
+          <span class="badge">${escapeHtml(dun)}</span>
+          ${serial ? `<span class="badge serial">🎫 ${escapeHtml(serial)}</span>` : ""}
+          ${counter ? `<span class="badge counter">🧾 ${escapeHtml(counter)}</span>` : ""}
+          ${phone ? `<span class="phone">📱 ${escapeHtml(phone)}</span>` : ""}
+        </div>
+      </div>
+
+      <div class="qr-wrap">
+        ${
+          item.qrUrl
+            ? `
+              <div class="qr-box">
+                <img src="${escapeHtml(item.qrUrl)}"
+                     alt="QR ${escapeHtml(serial)}"
+                     loading="lazy">
+              </div>
+              <div class="qr-label">SCAN QR</div>
+            `
+            : `
+              <div class="qr-empty">🎫</div>
+              <div class="qr-label">QR BELUM ADA</div>
+            `
+        }
+      </div>
+
+      <div class="status">
+        ${
+          item.checkedIn
+            ? `
+              <span class="status-badge checked-badge">✓ CHECKED-IN</span>
+              <div class="check-time">${escapeHtml(item.checkInTime || "-")}</div>
+            `
+            : `
+              <span class="status-badge pending-badge">🟠 BELUM CHECK-IN</span>
+              <div class="check-time">Kaunter: ${escapeHtml(counter || "-")}</div>
+            `
+        }
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  // Jika halaman dibuka melalui QR ?id=xxxx,
+  // terus sediakan panel operasi Urusetia.
+  if (getQrIdFromUrl()) {
+    prepareStaffMode(results);
+  }
+}
+
+function setSearchLoading(status) {
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = status;
+  btn.textContent = status ? "CARI..." : "🔎 CARI";
+}
+
+function showEmptyMessage(message) {
+  const box = document.getElementById("empty");
+  box.style.display = "block";
+  box.innerHTML = "ℹ️<br><br>" + escapeHtml(message);
+}
+
+function hideMessages() {
+  document.getElementById("empty").style.display = "none";
+  document.getElementById("successMessage").style.display = "none";
+}
+
+function showSuccess(message) {
+  const box = document.getElementById("successMessage");
+  box.textContent = message;
+  box.style.display = "block";
+}
+
+function getQrIdFromUrl() {
+  try {
+    const id = new URLSearchParams(window.location.search).get("id");
+    return id && /^\d+$/.test(id) ? String(Number(id)) : "";
+  } catch(e) {
+    return "";
+  }
+}
+
+function autoSearchFromUrl() {
+  const id = getQrIdFromUrl();
+  if (!id) return;
+
+  setSearchType("serial");
+  document.getElementById("searchInput").value = id;
+  search();
+}
+
+function getStoredBriskToken_() {
+  try {
+    return sessionStorage.getItem("BRISK_AUTH_TOKEN") ||
+           localStorage.getItem("BRISK_AUTH_TOKEN") || "";
+  } catch(e) {
+    try { return localStorage.getItem("BRISK_AUTH_TOKEN") || ""; }
+    catch(e2) { return ""; }
+  }
+}
+
+async function prepareStaffMode(results) {
+  const panel = document.getElementById("staffPanel");
+  const sub = document.getElementById("staffSub");
+  const note = document.getElementById("staffNote");
+  const btn = document.getElementById("checkinBtn");
+
+  panel.style.display = "block";
+  btn.style.display = "none";
+
+  if (!results || results.length !== 1) {
+    sub.textContent = "QR peserta tidak dapat dikenal pasti.";
+    note.className = "staff-note warning";
+    note.textContent = "Sila gunakan QR peserta Brisk Walk yang sah.";
+    return;
+  }
+
+  const item = results[0];
+  const token = getStoredBriskToken_();
+
+  if (!token) {
+    sub.textContent = "Login diperlukan untuk check-in.";
+    note.className = "staff-note warning";
+    note.textContent = "Sila login sebagai Urusetia/Admin dahulu, kemudian scan QR semula.";
+    return;
+  }
+
+  try {
+    const ctx = await apiJSONP("api_auth", {token: token});
+
+    if (!ctx || !ctx.authenticated ||
+        (String(ctx.role).toUpperCase() !== "ADMIN" &&
+         String(ctx.role).toUpperCase() !== "URUSETIA")) {
+      throw new Error("Sesi login tidak sah.");
+    }
+
+    staffContext = ctx;
+    staffItem = item;
+
+    if (item.checkedIn) {
+      sub.textContent = "Peserta telah direkodkan hadir.";
+      note.className = "staff-note success";
+      note.innerHTML =
+        "✓ <b>CHECK-IN SUDAH BERJAYA</b><br>" +
+        "Masa: " + escapeHtml(item.checkInTime || "-");
+      return;
+    }
+
+    const role = String(ctx.role || "").toUpperCase();
+    const userCounter = String(ctx.counter || "").toUpperCase();
+    const participantCounter = String(item.counter || "").toUpperCase();
+
+    if (role === "URUSETIA" && userCounter !== participantCounter) {
+      sub.textContent = "Kaunter tidak sepadan.";
+      note.className = "staff-note warning";
+      note.textContent =
+        "Peserta ini ialah " + (item.counter || "-") +
+        ". Akaun anda ialah " + (ctx.counter || "-") + ".";
+      return;
+    }
+
+    sub.textContent = "Peserta dikenal pasti. Sahkan kehadiran.";
+    note.className = "staff-note";
+    note.innerHTML =
+      "👤 <b>" + escapeHtml(item.nama) + "</b><br>" +
+      "🎫 No Siri: <b>" + escapeHtml(item.serial) + "</b><br>" +
+      "🧾 " + escapeHtml(item.counter || "-");
+
+    btn.style.display = "block";
+
+  } catch(err) {
+    sub.textContent = "Sesi login tidak dapat disahkan.";
+    note.className = "staff-note warning";
+    note.textContent = err.message || "Sila login semula.";
+  }
+}
+
+function closeStaffPanel() {
+  document.getElementById("staffPanel").style.display = "none";
+  staffItem = null;
+  staffContext = null;
+}
+
+function openConfirm() {
+  if (!staffItem) return;
+
+  document.getElementById("confirmDetail").innerHTML =
+    "<b>" + escapeHtml(staffItem.nama) + "</b><br>" +
+    "No Siri: <b>" + escapeHtml(staffItem.serial) + "</b><br>" +
+    escapeHtml(staffItem.counter || "");
+
+  document.getElementById("confirmModal").style.display = "flex";
+}
+
+function closeConfirm() {
+  document.getElementById("confirmModal").style.display = "none";
+}
+
+async function confirmCheckin() {
+  const item = staffItem;
+  const token = getStoredBriskToken_();
+  const btn = document.getElementById("confirmBtn");
+
+  if (!item || !token) return;
+
+  btn.disabled = true;
+  btn.textContent = "SEDANG CHECK-IN...";
+
+  try {
+    const result = await apiJSONP("api_checkin", {
+      participants: JSON.stringify([{
+        sourceSheet: item.sourceSheet,
+        sourceRow: item.sourceRow
+      }]),
+      token: token
+    });
+
+    if (!result || result.success === false) {
+      throw new Error(result?.message || "Check-in gagal.");
+    }
+
+    closeConfirm();
+
+    const checkTime =
+      result.checkedIn && result.checkedIn[0]
+        ? result.checkedIn[0].time
+        : result.checkInTime || "-";
+
+    const note = document.getElementById("staffNote");
+    const btnStaff = document.getElementById("checkinBtn");
+
+    document.getElementById("staffSub").textContent =
+      "Kehadiran telah direkodkan.";
+
+    note.className = "staff-note success";
+    note.innerHTML =
+      "✓ <b>CHECK-IN BERJAYA</b><br>" +
+      escapeHtml(item.nama) + "<br>" +
+      "Masa: " + escapeHtml(checkTime);
+
+    btnStaff.style.display = "none";
+
+    showSuccess("✓ " + item.nama + " berjaya check-in.");
+    search();
+
+  } catch(err) {
+    closeConfirm();
+    showSuccess("");
+    const box = document.getElementById("successMessage");
+    box.style.display = "block";
+    box.style.background = "#fff7ed";
+    box.style.borderColor = "#fed7aa";
+    box.style.color = "#9a3412";
+    box.textContent = err.message || "Ralat semasa check-in.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "YA, CHECK-IN";
+  }
+}
+
+/* =========================
+   QR SCANNER
+   ========================= */
+
+function openQrScanner() {
+  const token = getStoredBriskToken_();
+
+  if (!token) {
+    alert("Sila login sebagai Urusetia atau Admin dahulu sebelum scan QR peserta.");
+    return;
+  }
+
+  if (typeof Html5Qrcode === "undefined") {
+    alert("Modul scanner QR belum dimuatkan. Sila refresh page.");
+    return;
+  }
+
+  document.getElementById("scannerModal").style.display = "flex";
+  document.getElementById("scannerStatus").textContent = "Membuka kamera...";
+
+  if (qrScannerRunning) return;
+
+  qrScanner = new Html5Qrcode("qrReader");
+  qrScannerRunning = true;
+
+  qrScanner.start(
+    {facingMode:"environment"},
+    {fps:10,qrbox:{width:250,height:250}},
+    decodedText => handleScannedQr(decodedText),
+    () => {}
+  ).then(() => {
+    document.getElementById("scannerStatus").textContent =
+      "Kamera aktif · Halakan ke QR peserta.";
+  }).catch(() => {
+    qrScannerRunning = false;
+    document.getElementById("scannerStatus").textContent =
+      "Kamera tidak dapat dibuka.";
+    alert("Tidak dapat membuka kamera. Pastikan kebenaran kamera diberikan.");
+  });
+}
+
+function closeScanner() {
+  document.getElementById("scannerModal").style.display = "none";
+
+  if (qrScanner && qrScannerRunning) {
+    qrScanner.stop()
+      .then(() => qrScanner.clear())
+      .catch(() => {})
+      .finally(() => {
+        qrScannerRunning = false;
+        qrScanner = null;
+      });
+  } else {
+    qrScannerRunning = false;
+    qrScanner = null;
+  }
+}
+
+function handleScannedQr(decodedText) {
+  const serial = extractSerialFromQr(decodedText);
+
+  if (!serial) {
+    document.getElementById("scannerStatus").textContent =
+      "QR tidak sah untuk Brisk Walk.";
+    return;
+  }
+
+  closeScanner();
+  setSearchType("serial");
+  document.getElementById("searchInput").value = serial;
+  search();
+}
+
+function extractSerialFromQr(text) {
+  const value = String(text || "").trim();
+  if (!value) return "";
+
+  try {
+    const url = new URL(value);
+    const id = url.searchParams.get("id");
+
+    if (id && /^\d+$/.test(id)) {
+      return String(Number(id));
+    }
+  } catch(e) {}
+
+  if (/^\d+$/.test(value)) {
+    return String(Number(value));
+  }
+
+  return "";
+}
+
+/* ENTER = SEARCH */
+document.getElementById("searchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") search();
+});
+
+/* AUTO SEARCH ?id=xxxx */
+window.addEventListener("load", () => {
+  setStatus(true, "API sedia");
+  autoSearchFromUrl();
+});
+</script>
+</body>
+</html>
