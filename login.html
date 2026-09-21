@@ -250,9 +250,15 @@ function login(){
 
     let url=target+'.html';
     if(target==='index')url='index.html';
+
     if(target==='printkaunter'){
-      url+='?counter='+encodeURIComponent(counter);
+      // Urusetia: bawa kaunter sendiri.
+      // Admin: jangan hantar "counter=ADMIN"; Print Kaunter boleh pilih mana-mana kaunter.
+      if(role==='URUSETIA'){
+        url+='?counter='+encodeURIComponent(counter.replace(/^KAUNTER\\s+/i,''));
+      }
     }
+
     window.location.href=url;
   },function(err){
     showLoading(false);
