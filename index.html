@@ -1,2723 +1,634 @@
 <!DOCTYPE html>
 <html lang="ms">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Brisk Walk 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brisk Walk 2026 · Operations Center</title>
 
   <style>
+    *{box-sizing:border-box}
 
-    * {
-      box-sizing: border-box;
-    }
-
-
-    body {
-
-      margin: 0;
-
-      min-height: 100vh;
-
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Arial,Helvetica,sans-serif;
+      color:#0f172a;
       background:
-        radial-gradient(
-          circle at 10% 10%,
-          #dbeafe,
-          transparent 35%
-        ),
-        radial-gradient(
-          circle at 90% 90%,
-          #dcfce7,
-          transparent 35%
-        ),
+        radial-gradient(circle at 8% 5%,#dbeafe,transparent 30%),
+        radial-gradient(circle at 92% 92%,#dcfce7,transparent 30%),
         #f8fafc;
-
-      color: #0f172a;
-
-      padding: 30px 15px;
-
+      padding:28px 14px 40px;
     }
 
+    .wrap{width:100%;max-width:1080px;margin:auto}
 
-    .container {
-
-      width: 100%;
-
-      max-width: 900px;
-
-      margin: auto;
-
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:24px;
     }
 
-
-    /* ==========================================
-       HEADER
-       ========================================== */
-
-    .header {
-
-      text-align: center;
-
-      margin-bottom: 28px;
-
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
     }
 
-
-    .logo {
-
-      width: 72px;
-
-      height: 72px;
-
-      margin: auto;
-
-      border-radius: 22px;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      background: white;
-
-      font-size: 38px;
-
-      box-shadow:
-        0 15px 35px
-        rgba(15,23,42,.10);
-
+    .brand-icon{
+      width:58px;height:58px;border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      background:#0f172a;color:#fff;font-size:29px;
+      box-shadow:0 12px 28px rgba(15,23,42,.16);
     }
 
+    .brand h1{margin:0;font-size:25px;letter-spacing:-.7px}
+    .brand p{margin:4px 0 0;color:#64748b;font-size:12px}
 
-    .header h1 {
-
-      margin:
-        15px 0 5px;
-
-      font-size: 32px;
-
-      font-weight: 800;
-
-      letter-spacing: -1px;
-
+    .status{
+      display:flex;align-items:center;gap:8px;
+      padding:9px 12px;border-radius:999px;
+      background:rgba(255,255,255,.8);
+      border:1px solid #e2e8f0;
+      color:#64748b;font-size:11px;
+      white-space:nowrap;
     }
 
-
-    .header p {
-
-      margin: 0;
-
-      color: #64748b;
-
-      font-size: 14px;
-
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#22c55e;
+      box-shadow:0 0 0 4px rgba(34,197,94,.12);
     }
 
+    .dot.off{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.10)}
 
-    /* ==========================================
-       TOTAL CARD
-       ========================================== */
-
-    .total-card {
-
-      position: relative;
-
-      overflow: hidden;
-
-      background:
-        linear-gradient(
-          135deg,
-          #0f172a,
-          #1e293b
-        );
-
-      color: white;
-
-      border-radius: 28px;
-
-      padding: 28px;
-
-      text-align: center;
-
-      margin-bottom: 14px;
-
-      box-shadow:
-        0 20px 45px
-        rgba(15,23,42,.18);
-
+    .hero{
+      display:grid;
+      grid-template-columns:1.35fr .65fr;
+      gap:14px;
+      margin-bottom:14px;
     }
 
-
-    .total-card::before {
-
-      content: "";
-
-      position: absolute;
-
-      width: 180px;
-
-      height: 180px;
-
-      border-radius: 50%;
-
-      background:
-        rgba(255,255,255,.04);
-
-      top: -80px;
-
-      left: -60px;
-
+    .total{
+      position:relative;overflow:hidden;
+      min-height:205px;
+      border-radius:28px;
+      padding:30px;
+      color:#fff;
+      background:linear-gradient(135deg,#0f172a,#1e293b);
+      box-shadow:0 22px 50px rgba(15,23,42,.18);
     }
 
+    .total:before,.total:after{
+      content:"";position:absolute;border-radius:50%;
+      background:rgba(255,255,255,.045);
+    }
+    .total:before{width:220px;height:220px;left:-95px;top:-105px}
+    .total:after{width:260px;height:260px;right:-110px;bottom:-175px}
 
-    .total-card::after {
+    .eyebrow{position:relative;z-index:2;font-size:10px;letter-spacing:2px;opacity:.58}
+    .total-number{
+      position:relative;z-index:2;
+      margin-top:9px;font-size:64px;line-height:1;font-weight:800;
+      letter-spacing:-2px;
+    }
+    .total-caption{position:relative;z-index:2;margin-top:10px;font-size:13px;opacity:.62}
 
-      content: "";
-
-      position: absolute;
-
-      width: 220px;
-
-      height: 220px;
-
-      border-radius: 50%;
-
-      background:
-        rgba(255,255,255,.035);
-
-      bottom: -130px;
-
-      right: -70px;
-
+    .refresh{
+      position:absolute;right:22px;top:20px;z-index:3;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.08);color:#fff;
+      border-radius:12px;padding:9px 11px;cursor:pointer;
     }
 
-
-    .total-label {
-
-      position: relative;
-
-      z-index: 2;
-
-      font-size: 11px;
-
-      letter-spacing: 2px;
-
-      opacity: .65;
-
+    .mini-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
     }
 
+    .mini{
+      background:rgba(255,255,255,.94);
+      border:1px solid #eef2f7;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 10px 25px rgba(15,23,42,.07);
+    }
+    .mini-label{font-size:10px;letter-spacing:1px;color:#94a3b8}
+    .mini-value{font-size:31px;font-weight:800;margin-top:7px}
+    .mini-sub{font-size:11px;color:#64748b;margin-top:3px}
 
-    .total-number {
+    .section-title{
+      display:flex;align-items:end;justify-content:space-between;
+      gap:10px;margin:24px 2px 10px;
+    }
+    .section-title h2{margin:0;font-size:17px}
+    .section-title span{font-size:11px;color:#94a3b8}
 
-      position: relative;
-
-      z-index: 2;
-
-      font-size: 46px;
-
-      line-height: 1;
-
-      font-weight: 800;
-
-      margin-top: 8px;
-
+    .dun-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
     }
 
-
-    .total-sub {
-
-      position: relative;
-
-      z-index: 2;
-
-      margin-top: 8px;
-
-      font-size: 12px;
-
-      opacity: .55;
-
+    .dun{
+      background:rgba(255,255,255,.96);
+      border:1px solid #eef2f7;
+      border-radius:22px;
+      padding:20px;
+      box-shadow:0 10px 25px rgba(15,23,42,.07);
     }
 
+    .dun-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .dun-name{font-weight:800;font-size:13px}
+    .dun-code{
+      padding:5px 8px;border-radius:8px;
+      background:#f1f5f9;color:#475569;font-size:10px;font-weight:800;
+    }
+    .dun-total{font-size:34px;font-weight:800;margin-top:15px}
+    .dun-total small{font-size:10px;color:#94a3b8;font-weight:600}
+    .bar{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:13px}
+    .bar > div{height:100%;width:0;background:#0f172a;border-radius:999px;transition:width .4s}
+    .dun-foot{display:flex;justify-content:space-between;margin-top:9px;font-size:10px;color:#64748b}
 
-    /* ==========================================
-       DUN CARDS
-       ========================================== */
-
-    .dun-grid {
-
-      display: grid;
-
-      grid-template-columns:
-        repeat(4, 1fr);
-
-      gap: 12px;
-
-      margin-bottom: 28px;
-
+    .actions{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
     }
 
+    .action{
+      min-height:92px;
+      padding:16px;
+      text-align:left;
+      border:1px solid #e2e8f0;
+      border-radius:18px;
+      background:#fff;
+      color:#0f172a;
+      cursor:pointer;
+      text-decoration:none;
+      box-shadow:0 8px 20px rgba(15,23,42,.05);
+      transition:.18s;
+    }
+    .action:hover{transform:translateY(-2px);box-shadow:0 13px 28px rgba(15,23,42,.09)}
+    .action-icon{font-size:23px;margin-bottom:10px}
+    .action-title{font-size:12px;font-weight:800}
+    .action-sub{font-size:10px;color:#94a3b8;margin-top:4px}
 
-    .dun-card {
-
-      background:
-        rgba(255,255,255,.94);
-
-      border-radius: 20px;
-
-      padding: 20px 12px;
-
-      text-align: center;
-
-      border:
-        1px solid #eef2f7;
-
-      box-shadow:
-        0 10px 25px
-        rgba(15,23,42,.07);
-
-      transition:
-        transform .2s ease,
-        box-shadow .2s ease;
-
+    .search-card{
+      margin-top:14px;
+      background:rgba(255,255,255,.96);
+      border:1px solid #eef2f7;
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 15px 35px rgba(15,23,42,.07);
     }
 
-
-    .dun-card:hover {
-
-      transform:
-        translateY(-3px);
-
-      box-shadow:
-        0 15px 30px
-        rgba(15,23,42,.10);
-
+    .search-row{
+      display:grid;
+      grid-template-columns:150px 1fr 125px;
+      gap:9px;
     }
 
+    select,input{
+      width:100%;height:48px;border:1px solid #e2e8f0;
+      border-radius:13px;background:#f8fafc;
+      padding:0 13px;outline:none;font-size:13px;color:#0f172a;
+    }
+    select:focus,input:focus{background:#fff;border-color:#0f172a;box-shadow:0 0 0 4px rgba(15,23,42,.05)}
 
-    .dun-name {
+    button.primary{
+      border:0;border-radius:13px;background:#0f172a;color:#fff;
+      font-weight:800;cursor:pointer;
+    }
+    button.primary:disabled{opacity:.6;cursor:not-allowed}
 
-      font-size: 13px;
+    .results{margin-top:14px;display:none}
+    .result{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:14px;border:1px solid #eef2f7;border-radius:15px;
+      background:#f8fafc;margin-top:8px;
+    }
+    .result-name{font-weight:800;font-size:13px}
+    .result-meta{font-size:10px;color:#64748b;margin-top:4px}
+    .badge{
+      padding:7px 9px;border-radius:9px;font-size:10px;font-weight:800;white-space:nowrap;
+    }
+    .badge.ok{background:#dcfce7;color:#15803d}
+    .badge.pending{background:#fef3c7;color:#a16207}
 
-      font-weight: 800;
+    .footer{text-align:center;color:#94a3b8;font-size:10px;margin-top:24px}
 
-      color: #334155;
-
+    @media(max-width:850px){
+      .hero{grid-template-columns:1fr}
+      .dun-grid{grid-template-columns:repeat(2,1fr)}
+      .actions{grid-template-columns:repeat(3,1fr)}
     }
 
-
-    .dun-count {
-
-      font-size: 29px;
-
-      font-weight: 800;
-
-      margin-top: 6px;
-
-      color: #0f172a;
-
+    @media(max-width:560px){
+      body{padding:18px 10px 30px}
+      .top{align-items:flex-start}
+      .brand h1{font-size:20px}
+      .brand-icon{width:50px;height:50px;font-size:25px}
+      .status{font-size:9px}
+      .total{padding:25px;min-height:180px}
+      .total-number{font-size:52px}
+      .mini{padding:18px}
+      .mini-value{font-size:27px}
+      .dun-grid{grid-template-columns:1fr 1fr;gap:9px}
+      .dun{padding:16px}
+      .dun-total{font-size:29px}
+      .actions{grid-template-columns:1fr 1fr}
+      .search-row{grid-template-columns:1fr}
+      .result{align-items:flex-start;flex-direction:column}
     }
-
-
-    .dun-label {
-
-      font-size: 10px;
-
-      color: #94a3b8;
-
-      margin-top: 3px;
-
-      letter-spacing: .5px;
-
-    }
-
-
-    /* ==========================================
-       FORM CARD
-       ========================================== */
-
-    .form-card {
-
-      background:
-        rgba(255,255,255,.96);
-
-      border-radius: 28px;
-
-      padding: 30px;
-
-      box-shadow:
-        0 25px 60px
-        rgba(15,23,42,.10);
-
-      border:
-        1px solid
-        rgba(255,255,255,.8);
-
-    }
-
-
-    .form-header {
-
-      margin-bottom: 22px;
-
-    }
-
-
-    .form-title {
-
-      font-size: 21px;
-
-      font-weight: 800;
-
-      margin-bottom: 5px;
-
-    }
-
-
-    .form-subtitle {
-
-      color: #64748b;
-
-      font-size: 13px;
-
-    }
-
-
-    .field {
-
-      margin-bottom: 18px;
-
-    }
-
-
-    label {
-
-      display: block;
-
-      font-size: 12px;
-
-      font-weight: 800;
-
-      color: #334155;
-
-      margin-bottom: 8px;
-
-      letter-spacing: .3px;
-
-    }
-
-
-    input,
-    select {
-
-      width: 100%;
-
-      height: 53px;
-
-      border:
-        1px solid #e2e8f0;
-
-      border-radius: 15px;
-
-      background: #f8fafc;
-
-      padding:
-        0 15px;
-
-      font-size: 15px;
-
-      color: #0f172a;
-
-      outline: none;
-
-      transition: .2s;
-
-    }
-
-
-    input:focus,
-    select:focus {
-
-      border-color:
-        #0f172a;
-
-      background: white;
-
-      box-shadow:
-        0 0 0 4px
-        rgba(15,23,42,.06);
-
-    }
-
-
-    .btn {
-
-      width: 100%;
-
-      height: 55px;
-
-      border: none;
-
-      border-radius: 16px;
-
-      background:
-        #0f172a;
-
-      color: white;
-
-      font-size: 14px;
-
-      font-weight: 800;
-
-      cursor: pointer;
-
-      transition: .2s;
-
-    }
-
-
-    .btn:hover {
-
-      transform:
-        translateY(-1px);
-
-      box-shadow:
-        0 10px 25px
-        rgba(15,23,42,.20);
-
-    }
-
-
-    .btn:disabled {
-
-      opacity: .6;
-
-      cursor:
-        not-allowed;
-
-      transform: none;
-
-    }
-
-
-    /* ==========================================
-       ERROR
-       ========================================== */
-
-    .error {
-
-      display: none;
-
-      margin-bottom: 18px;
-
-      padding: 14px 15px;
-
-      border-radius: 14px;
-
-      background:
-        #fef2f2;
-
-      border:
-        1px solid #fee2e2;
-
-      color:
-        #b91c1c;
-
-      font-size: 13px;
-
-      font-weight: 600;
-
-    }
-
-
-    .loading {
-
-      display: none;
-
-      text-align: center;
-
-      color: #64748b;
-
-      margin-top: 14px;
-
-      font-size: 13px;
-
-    }
-
-
-    /* ==========================================
-       SUCCESS
-       ========================================== */
-
-    .success {
-
-      display: none;
-
-      text-align: center;
-
-    }
-
-
-    .success-icon {
-
-      width: 72px;
-
-      height: 72px;
-
-      margin:
-        0 auto 15px;
-
-      border-radius: 50%;
-
-      background:
-        #dcfce7;
-
-      color:
-        #16a34a;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      font-size: 35px;
-
-      font-weight: 800;
-
-    }
-
-
-    .success h2 {
-
-      margin:
-        0 0 7px;
-
-      font-size: 24px;
-
-    }
-
-
-    .success p {
-
-      margin:
-        0 0 20px;
-
-      color: #64748b;
-
-      font-size: 14px;
-
-    }
-
-
-    /* ==========================================
-       PARTICIPANT CARD
-       ========================================== */
-
-    .participant-card {
-
-      position: relative;
-
-      overflow: hidden;
-
-      text-align: left;
-
-      background:
-        linear-gradient(
-          135deg,
-          #0f172a,
-          #1e293b
-        );
-
-      color: white;
-
-      border-radius: 24px;
-
-      padding: 26px;
-
-    }
-
-
-    .participant-card::after {
-
-      content: "";
-
-      position: absolute;
-
-      width: 170px;
-
-      height: 170px;
-
-      border-radius: 50%;
-
-      background:
-        rgba(255,255,255,.04);
-
-      right: -60px;
-
-      top: -60px;
-
-    }
-
-
-    .event-label {
-
-      position: relative;
-
-      z-index: 2;
-
-      font-size: 10px;
-
-      letter-spacing: 2px;
-
-      opacity: .55;
-
-      margin-bottom: 20px;
-
-    }
-
-
-    .participant-name {
-
-      position: relative;
-
-      z-index: 2;
-
-      font-size: 25px;
-
-      font-weight: 800;
-
-      margin-bottom: 22px;
-
-      word-break:
-        break-word;
-
-    }
-
-
-    .participant-info {
-
-      position: relative;
-
-      z-index: 2;
-
-      display: grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
-      gap: 15px;
-
-    }
-
-
-    .info-label {
-
-      font-size: 10px;
-
-      opacity: .5;
-
-      margin-bottom: 5px;
-
-      letter-spacing: .5px;
-
-    }
-
-
-    .info-value {
-
-      font-size: 14px;
-
-      font-weight: 700;
-
-    }
-
-
-    .registration-time {
-
-      position: relative;
-
-      z-index: 2;
-
-      margin-top: 20px;
-
-      padding-top: 15px;
-
-      border-top:
-        1px solid
-        rgba(255,255,255,.12);
-
-    }
-
-
-    /* ==========================================
-       ACTION BUTTONS
-       ========================================== */
-
-    .actions {
-
-      display: grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
-      gap: 10px;
-
-      margin-top: 20px;
-
-    }
-
-
-    .action {
-
-      height: 48px;
-
-      border-radius: 14px;
-
-      border:
-        1px solid #e2e8f0;
-
-      background: white;
-
-      color: #0f172a;
-
-      font-weight: 700;
-
-      cursor: pointer;
-
-    }
-
-
-    .action.new {
-
-      background:
-        #0f172a;
-
-      color: white;
-
-      border: none;
-
-    }
-
-
-    /* ==========================================
-       FOOTER
-       ========================================== */
-
-    .footer {
-
-      text-align: center;
-
-      color: #94a3b8;
-
-      font-size: 11px;
-
-      margin-top: 20px;
-
-    }
-
-
-    /* ==========================================
-       API STATUS
-       ========================================== */
-
-    .api-status {
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      gap: 7px;
-
-      margin-top: 10px;
-
-      font-size: 10px;
-
-      color: #94a3b8;
-
-    }
-
-
-    .api-dot {
-
-      width: 7px;
-
-      height: 7px;
-
-      border-radius: 50%;
-
-      background: #22c55e;
-
-      box-shadow:
-        0 0 0 4px
-        rgba(34,197,94,.10);
-
-    }
-
-
-    .api-dot.offline {
-
-      background: #ef4444;
-
-      box-shadow:
-        0 0 0 4px
-        rgba(239,68,68,.10);
-
-    }
-
-
-    /* ==========================================
-       MOBILE
-       ========================================== */
-
-    @media(max-width:700px) {
-
-      .dun-grid {
-
-        grid-template-columns:
-          repeat(2, 1fr);
-
-      }
-
-    }
-
-
-    @media(max-width:480px) {
-
-      body {
-
-        padding:
-          20px 12px;
-
-      }
-
-
-      .header h1 {
-
-        font-size: 27px;
-
-      }
-
-
-      .total-card {
-
-        padding: 25px;
-
-      }
-
-
-      .total-number {
-
-        font-size: 40px;
-
-      }
-
-
-      .form-card {
-
-        padding: 22px;
-
-      }
-
-
-      .dun-card {
-
-        padding:
-          16px 8px;
-
-      }
-
-
-      .dun-count {
-
-        font-size: 25px;
-
-      }
-
-
-      .participant-card {
-
-        padding: 22px;
-
-      }
-
-
-      .actions {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-    }
-
   </style>
-
 </head>
 
-
 <body>
+<div class="wrap">
 
-
-<div class="container">
-
-
-  <!-- ==========================================
-       HEADER
-       ========================================== -->
-
-  <div class="header">
-
-    <div class="logo">
-      🏃
+  <div class="top">
+    <div class="brand">
+      <div class="brand-icon">🏃</div>
+      <div>
+        <h1>BRISK WALK 2026</h1>
+        <p>Operations Center · Sistem Pengurusan Peserta</p>
+      </div>
     </div>
 
-
-    <h1>
-      BRISK WALK 2026
-    </h1>
-
-
-    <p>
-      Pendaftaran Peserta
-    </p>
-
-
-    <div class="api-status">
-
-      <span
-        id="apiDot"
-        class="api-dot">
-      </span>
-
-      <span id="apiStatus">
-        Menyambung ke sistem...
-      </span>
-
+    <div class="status">
+      <span id="apiDot" class="dot"></span>
+      <span id="apiStatus">Menyambung...</span>
     </div>
-
   </div>
 
-
-  <!-- ==========================================
-       TOTAL PARTICIPANTS
-       ========================================== -->
-
-  <div class="total-card">
-
-    <div class="total-label">
-      JUMLAH PESERTA SEDIA ADA
+  <section class="hero">
+    <div class="total">
+      <button class="refresh" onclick="loadDashboard()" title="Refresh">↻</button>
+      <div class="eyebrow">JUMLAH PESERTA BERDAFTAR</div>
+      <div id="totalCount" class="total-number">—</div>
+      <div class="total-caption">Database peserta telah ditutup · data operasi semasa</div>
     </div>
 
-
-    <div
-      id="totalCount"
-      class="total-number">
-
-      ...
-
+    <div class="mini-grid">
+      <div class="mini">
+        <div class="mini-label">CHECK-IN</div>
+        <div id="checkedIn" class="mini-value">—</div>
+        <div class="mini-sub">Peserta hadir</div>
+      </div>
+      <div class="mini">
+        <div class="mini-label">BELUM CHECK-IN</div>
+        <div id="pending" class="mini-value">—</div>
+        <div class="mini-sub">Masih belum hadir</div>
+      </div>
+      <div class="mini">
+        <div class="mini-label">KADAR KEHADIRAN</div>
+        <div id="percentage" class="mini-value">—</div>
+        <div class="mini-sub">Daripada jumlah peserta</div>
+      </div>
+      <div class="mini">
+        <div class="mini-label">KEMAS KINI</div>
+        <div id="updated" class="mini-value" style="font-size:16px;margin-top:13px">—</div>
+        <div class="mini-sub">Masa data terakhir dibaca</div>
+      </div>
     </div>
+  </section>
 
-
-    <div class="total-sub">
-      Data dibaca terus daripada database
-    </div>
-
+  <div class="section-title">
+    <h2>Statistik DUN</h2>
+    <span>Jumlah peserta mengikut DUN</span>
   </div>
 
-
-  <!-- ==========================================
-       DUN STATISTICS
-       ========================================== -->
-
-  <div
-    id="dunGrid"
-    class="dun-grid">
-
+  <div id="dunGrid" class="dun-grid">
+    <div class="dun"><div class="dun-name">Memuatkan...</div></div>
+    <div class="dun"><div class="dun-name">Memuatkan...</div></div>
+    <div class="dun"><div class="dun-name">Memuatkan...</div></div>
+    <div class="dun"><div class="dun-name">Memuatkan...</div></div>
   </div>
 
-
-  <!-- ==========================================
-       FORM CARD
-       ========================================== -->
-
-  <div class="form-card">
-
-
-    <!-- REGISTRATION -->
-
-    <div
-      id="registrationSection">
-
-
-      <div class="form-header">
-
-        <div class="form-title">
-          Daftar Peserta
-        </div>
-
-        <div class="form-subtitle">
-          Sila lengkapkan maklumat di bawah
-        </div>
-
-      </div>
-
-
-      <div
-        id="errorBox"
-        class="error">
-      </div>
-
-
-      <!-- DUN -->
-
-      <div class="field">
-
-        <label>
-          DUN
-        </label>
-
-
-        <select id="dun">
-
-          <option value="">
-            Pilih DUN
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <!-- NAMA -->
-
-      <div class="field">
-
-        <label>
-          NAMA PENUH
-        </label>
-
-
-        <input
-          id="nama"
-          type="text"
-          placeholder="Masukkan nama penuh"
-          autocomplete="name"
-        >
-
-      </div>
-
-
-      <!-- TELEFON -->
-
-      <div class="field">
-
-        <label>
-          NOMBOR TELEFON
-        </label>
-
-
-        <input
-          id="telefon"
-          type="tel"
-          placeholder="Contoh: 0123456789"
-          autocomplete="tel"
-        >
-
-      </div>
-
-
-      <!-- BUTTON -->
-
-      <button
-        id="registerBtn"
-        class="btn"
-        onclick="register()">
-
-        DAFTAR SEKARANG
-
-      </button>
-
-
-      <div
-        id="loading"
-        class="loading">
-
-        ⏳ Sedang memproses pendaftaran...
-
-      </div>
-
-
-    </div>
-
-
-    <!-- ==========================================
-         SUCCESS
-         ========================================== -->
-
-    <div
-      id="successSection"
-      class="success">
-
-
-      <div class="success-icon">
-        ✓
-      </div>
-
-
-      <h2>
-        Pendaftaran Berjaya!
-      </h2>
-
-
-      <p>
-        Peserta telah berjaya direkodkan.
-      </p>
-
-
-      <!-- PARTICIPANT CARD -->
-
-      <div
-        class="participant-card">
-
-
-        <div class="event-label">
-          BRISK WALK 2026
-        </div>
-
-
-        <div
-          id="cardNama"
-          class="participant-name">
-
-        </div>
-
-
-        <div
-          class="participant-info">
-
-
-          <div>
-
-            <div class="info-label">
-              DUN
-            </div>
-
-
-            <div
-              id="cardDun"
-              class="info-value">
-
-            </div>
-
-          </div>
-
-
-          <div>
-
-            <div class="info-label">
-              TELEFON
-            </div>
-
-
-            <div
-              id="cardTelefon"
-              class="info-value">
-
-            </div>
-
-          </div>
-
-
-        </div>
-
-
-        <div
-          class="registration-time">
-
-
-          <div class="info-label">
-            TARIKH & MASA PENDAFTARAN
-          </div>
-
-
-          <div
-            id="cardTimestamp"
-            class="info-value">
-
-          </div>
-
-
-        </div>
-
-
-      </div>
-
-
-      <!-- ACTIONS -->
-
-      <div class="actions">
-
-
-        <button
-          class="action"
-          onclick="printCard()">
-
-          🖨️ CETAK KAD
-
-        </button>
-
-
-        <button
-          class="action new"
-          onclick="newRegistration()">
-
-          + PESERTA BARU
-
-        </button>
-
-
-      </div>
-
-
-    </div>
-
-
+  <div class="section-title">
+    <h2>Operasi</h2>
+    <span>Modul pengurusan Brisk Walk 2026</span>
   </div>
 
+  <div class="actions">
+    <a class="action" href="search.html">
+      <div class="action-icon">🔎</div>
+      <div class="action-title">Cari Peserta</div>
+      <div class="action-sub">Nama · telefon · no siri</div>
+    </a>
+
+    <a class="action" href="login.html">
+      <div class="action-icon">🎫</div>
+      <div class="action-title">Urusetia / Login</div>
+      <div class="action-sub">Akses check-in kaunter</div>
+    </a>
+
+    <a class="action" href="dashboard.html">
+      <div class="action-icon">📊</div>
+      <div class="action-title">Dashboard</div>
+      <div class="action-sub">Pantauan kehadiran</div>
+    </a>
+
+    <a class="action" href="printkaunter.html">
+      <div class="action-icon">🖨️</div>
+      <div class="action-title">Print Kaunter</div>
+      <div class="action-sub">Senarai peserta kaunter</div>
+    </a>
+
+    <a class="action" href="padananklb.html">
+      <div class="action-icon">📋</div>
+      <div class="action-title">Padanan KLB</div>
+      <div class="action-sub">Analisis N.14</div>
+    </a>
+  </div>
+
+  <div class="section-title">
+    <h2>Semakan Pantas</h2>
+    <span>Carian awam · tidak mengubah data</span>
+  </div>
+
+  <div class="search-card">
+    <div class="search-row">
+      <select id="searchType">
+        <option value="name">Nama</option>
+        <option value="phone">No Telefon</option>
+        <option value="serial">No Siri</option>
+      </select>
+
+      <input id="searchInput" placeholder="Masukkan carian..." onkeydown="if(event.key==='Enter') quickSearch()">
+
+      <button id="searchBtn" class="primary" onclick="quickSearch()">CARI</button>
+    </div>
+
+    <div id="searchResults" class="results"></div>
+  </div>
 
   <div class="footer">
-
-    Brisk Walk 2026 · Sistem Pendaftaran Peserta
-
+    Brisk Walk 2026 · Database Google Sheets · Frontend GitHub Pages
   </div>
-
-
 </div>
 
-
 <script>
-
-
-/* =========================================================
-   CONFIG
-   ========================================================= */
-
 const API_URL =
   "https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
 
-
-const API_TIMEOUT =
-  15000;
-
-
-/* =========================================================
-   GENERATE JSONP CALLBACK NAME
-   ========================================================= */
-
+const API_TIMEOUT = 15000;
 let jsonpCounter = 0;
 
-
-function getJsonpCallbackName() {
-
-  jsonpCounter++;
-
-  return (
-    "briskCallback_" +
-    Date.now() +
-    "_" +
-    jsonpCounter
-  );
-
-}
-
-
-/* =========================================================
-   API JSONP
-   ========================================================= */
-
-function apiJSONP(
-  page,
-  params = {}
-) {
-
-  return new Promise(
-    function(resolve, reject) {
-
-      const callbackName =
-        getJsonpCallbackName();
-
-
-      const script =
-        document.createElement(
-          "script"
-        );
-
-
-      let finished = false;
-
-
-      const cleanup =
-        function() {
-
-          if (
-            script &&
-            script.parentNode
-          ) {
-
-            script.parentNode.removeChild(
-              script
-            );
-
-          }
-
-
-          try {
-
-            delete window[
-              callbackName
-            ];
-
-          } catch (e) {
-
-            window[
-              callbackName
-            ] = undefined;
-
-          }
-
-        };
-
-
-      const timer =
-        setTimeout(
-          function() {
-
-            if (finished) {
-              return;
-            }
-
-
-            finished = true;
-
-            cleanup();
-
-            reject(
-              new Error(
-                "Sambungan ke server mengambil masa terlalu lama."
-              )
-            );
-
-          },
-          API_TIMEOUT
-        );
-
-
-      window[
-        callbackName
-      ] =
-        function(data) {
-
-          if (finished) {
-            return;
-          }
-
-
-          finished = true;
-
-          clearTimeout(timer);
-
-          cleanup();
-
-          resolve(data);
-
-        };
-
-
-      script.onerror =
-        function() {
-
-          if (finished) {
-            return;
-          }
-
-
-          finished = true;
-
-          clearTimeout(timer);
-
-          cleanup();
-
-          reject(
-            new Error(
-              "Tidak dapat menyambung ke API Brisk Walk."
-            )
-          );
-
-        };
-
-
-      const query =
-        new URLSearchParams();
-
-
-      query.set(
-        "page",
-        page
-      );
-
-
-      query.set(
-        "callback",
-        callbackName
-      );
-
-
-      Object.keys(params)
-        .forEach(
-          function(key) {
-
-            const value =
-              params[key];
-
-
-            if (
-              value !== undefined &&
-              value !== null
-            ) {
-
-              query.set(
-                key,
-                String(value)
-              );
-
-            }
-
-          }
-        );
-
-
-      script.src =
-        API_URL +
-        "?" +
-        query.toString();
-
-
-      document
-        .head
-        .appendChild(
-          script
-        );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-function formatNumber(value) {
-
-  const number =
-    Number(value || 0);
-
-
-  return number.toLocaleString(
-    "en-US"
-  );
-
-}
-
-
-/* =========================================================
-   SET API STATUS
-   ========================================================= */
-
-function setApiStatus(
-  online,
-  message
-) {
-
-  const dot =
-    document.getElementById(
-      "apiDot"
-    );
-
-
-  const status =
-    document.getElementById(
-      "apiStatus"
-    );
-
-
-  if (online) {
-
-    dot.classList.remove(
-      "offline"
-    );
-
-
-    status.textContent =
-      message ||
-      "Sistem online";
-
-  } else {
-
-    dot.classList.add(
-      "offline"
-    );
-
-
-    status.textContent =
-      message ||
-      "Sistem tidak dapat dicapai";
-
-  }
-
-}
-
-
-/* =========================================================
-   PAGE LOAD
-   ========================================================= */
-
-window.addEventListener(
-  "load",
-  function() {
-
-    loadDUN();
-
-    loadStats();
-
-  }
-);
-
-
-/* =========================================================
-   LOAD DUN
-   ========================================================= */
-
-async function loadDUN() {
-
-  const select =
-    document.getElementById(
-      "dun"
-    );
-
-
-  try {
-
-    const result =
-      await apiJSONP(
-        "api_dun_list"
-      );
-
-
-    console.log(
-      "API DUN LIST:",
-      result
-    );
-
-
-    if (
-      !result ||
-      result.success === false
-    ) {
-
-      throw new Error(
-        result?.message ||
-        "Gagal mendapatkan senarai DUN."
-      );
-
+function apiJSONP(page, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callbackName = "briskHome_" + Date.now() + "_" + (++jsonpCounter);
+    const script = document.createElement("script");
+    let finished = false;
+
+    function cleanup() {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[callbackName]; } catch(e) { window[callbackName] = undefined; }
     }
 
-
-    const list =
-      Array.isArray(
-        result.data
-      )
-        ? result.data
-        : Array.isArray(
-            result.dun
-          )
-          ? result.dun
-          : [];
-
-
-    /*
-     * Bersihkan option lama
-     */
-
-    select.innerHTML =
-      "";
-
-
-    const defaultOption =
-      document.createElement(
-        "option"
-      );
-
-
-    defaultOption.value =
-      "";
-
-
-    defaultOption.textContent =
-      "Pilih DUN";
-
-
-    select.appendChild(
-      defaultOption
-    );
-
-
-    /*
-     * Masukkan DUN
-     */
-
-    list.forEach(
-      function(item) {
-
-        const value =
-          typeof item === "string"
-            ? item
-            : (
-                item.dun ||
-                item.name ||
-                item.value ||
-                ""
-              );
-
-
-        if (!value) {
-          return;
-        }
-
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          value;
-
-
-        option.textContent =
-          value;
-
-
-        select.appendChild(
-          option
-        );
-
-      }
-    );
-
-
-    setApiStatus(
-      true,
-      "Sistem online"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Gagal load DUN:",
-      error
-    );
-
-
-    setApiStatus(
-      false,
-      "API tidak dapat dicapai"
-    );
-
-
-    showError(
-      error.message ||
-      "Gagal mendapatkan senarai DUN."
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   LOAD DATABASE STATISTICS
-   ========================================================= */
-
-async function loadStats() {
-
-  try {
-
-    const result =
-      await apiJSONP(
-        "api_dun_stats"
-      );
-
-
-    console.log(
-      "API DUN STATS:",
-      result
-    );
-
-
-    if (
-      !result ||
-      result.success === false
-    ) {
-
-      throw new Error(
-        result?.message ||
-        "Gagal mendapatkan statistik."
-      );
-
-    }
-
-
-    /*
-     * Sokong beberapa kemungkinan
-     * struktur response API.
-     */
-
-    const data =
-      result.data ||
-      result.stats ||
-      result;
-
-
-    /*
-     * TOTAL
-     */
-
-    const total =
-      Number(
-        data.total ??
-        result.total ??
-        0
-      );
-
-
-    document.getElementById(
-      "totalCount"
-    ).textContent =
-      formatNumber(total);
-
-
-    /*
-     * DUN ARRAY
-     */
-
-    const dunData =
-      Array.isArray(
-        data.dun
-      )
-        ? data.dun
-        : Array.isArray(
-            result.dun
-          )
-          ? result.dun
-          : [];
-
-
-    const grid =
-      document.getElementById(
-        "dunGrid"
-      );
-
-
-    grid.innerHTML =
-      "";
-
-
-    /*
-     * Default cards.
-     *
-     * Ini penting supaya walaupun
-     * response API berubah sedikit,
-     * empat DUN tetap keluar.
-     */
-
-    const dunMap = {
-
-      "N.11": {
-        name:
-          "N.11 SUNGAI UDANG",
-
-        count:
-          0
-      },
-
-      "N.12": {
-        name:
-          "N.12 PANTAI KUNDOR",
-
-        count:
-          0
-      },
-
-      "N.13": {
-        name:
-          "N.13 PAYA RUMPUT",
-
-        count:
-          0
-      },
-
-      "N.14": {
-        name:
-          "N.14 KELEBANG",
-
-        count:
-          0
-      }
-
+    const timer = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(new Error("Sambungan ke server mengambil masa terlalu lama."));
+    }, API_TIMEOUT);
+
+    window[callbackName] = data => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      resolve(data);
     };
 
+    script.onerror = () => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(new Error("API Brisk Walk tidak dapat dicapai."));
+    };
 
-    /*
-     * Masukkan data API.
-     *
-     * Backend menggunakan nama penuh:
-     *
-     * N.11 SUNGAI UDANG
-     * N.12 PANTAI KUNDOR
-     * N.13 PAYA RUMPUT
-     * N.14 KELEBANG
-     */
+    const query = new URLSearchParams();
+    query.set("page", page);
+    query.set("callback", callbackName);
 
-    dunData.forEach(
-      function(item) {
-
-        const dun =
-          String(
-            item.dun ||
-            item.DUN ||
-            ""
-          )
-            .trim()
-            .toUpperCase();
-
-
-        const shortName =
-          String(
-            item.shortName ||
-            ""
-          )
-            .trim()
-            .toUpperCase();
-
-
-        const sheetName =
-          String(
-            item.sheetName ||
-            ""
-          )
-            .trim()
-            .toUpperCase();
-
-
-        const count =
-          Number(
-            item.count ??
-            item.total ??
-            0
-          );
-
-
-        console.log(
-          "DUN:",
-          dun,
-          "SHORT:",
-          shortName,
-          "SHEET:",
-          sheetName,
-          "COUNT:",
-          count
-        );
-
-
-        /*
-         * N.11
-         */
-
-        if (
-          dun.startsWith("N.11") ||
-          shortName.startsWith("N.11") ||
-          sheetName === "BIL SU"
-        ) {
-
-          dunMap["N.11"].count =
-            count;
-
-        }
-
-
-        /*
-         * N.12
-         */
-
-        else if (
-          dun.startsWith("N.12") ||
-          shortName.startsWith("N.12") ||
-          sheetName === "BIL PK"
-        ) {
-
-          dunMap["N.12"].count =
-            count;
-
-        }
-
-
-        /*
-         * N.13
-         */
-
-        else if (
-          dun.startsWith("N.13") ||
-          shortName.startsWith("N.13") ||
-          sheetName === "BIL PR"
-        ) {
-
-          dunMap["N.13"].count =
-            count;
-
-        }
-
-
-        /*
-         * N.14
-         */
-
-        else if (
-          dun.startsWith("N.14") ||
-          shortName.startsWith("N.14") ||
-          sheetName === "BIL KLB"
-        ) {
-
-          dunMap["N.14"].count =
-            count;
-
-        }
-
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        query.set(key, String(params[key]));
       }
-    );
+    });
 
-
-    /*
-     * Render 4 DUN
-     */
-
-    Object.keys(
-      dunMap
-    ).forEach(
-      function(key) {
-
-        const item =
-          dunMap[key];
-
-
-        grid.innerHTML += `
-
-          <div class="dun-card">
-
-            <div class="dun-name">
-              ${escapeHtml(item.name)}
-            </div>
-
-            <div class="dun-count">
-              ${formatNumber(item.count)}
-            </div>
-
-            <div class="dun-label">
-              PESERTA
-            </div>
-
-          </div>
-
-        `;
-
-      }
-    );
-
-
-    setApiStatus(
-      true,
-      "Sistem online · Data terkini"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Gagal load statistik:",
-      error
-    );
-
-
-    document.getElementById(
-      "totalCount"
-    ).textContent =
-      "—";
-
-
-    const grid =
-      document.getElementById(
-        "dunGrid"
-      );
-
-
-    grid.innerHTML = `
-
-      <div
-        style="
-          grid-column:1/-1;
-          text-align:center;
-          padding:20px;
-          color:#94a3b8;
-          font-size:12px;
-        "
-      >
-
-        Statistik tidak dapat dimuat.
-
-      </div>
-
-    `;
-
-
-    setApiStatus(
-      false,
-      "Statistik tidak dapat dimuat"
-    );
-
-  }
-
+    script.src = API_URL + "?" + query.toString();
+    document.head.appendChild(script);
+  });
 }
 
+function fmt(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
 
-/* =========================================================
-   REGISTER
-   ========================================================= */
+function setStatus(online, text) {
+  document.getElementById("apiDot").classList.toggle("off", !online);
+  document.getElementById("apiStatus").textContent =
+    text || (online ? "Sistem online" : "Sistem offline");
+}
 
-async function register() {
+function esc(value) {
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
 
-  hideError();
-
-
-  const dun =
-    document.getElementById(
-      "dun"
-    ).value;
-
-
-  const nama =
-    document.getElementById(
-      "nama"
-    ).value.trim();
-
-
-  const telefon =
-    document.getElementById(
-      "telefon"
-    ).value.trim();
-
-
-  /*
-   * VALIDATION
-   */
-
-  if (!dun) {
-
-    showError(
-      "Sila pilih DUN."
-    );
-
-    return;
-
-  }
-
-
-  if (!nama) {
-
-    showError(
-      "Sila masukkan nama penuh."
-    );
-
-    return;
-
-  }
-
-
-  if (!telefon) {
-
-    showError(
-      "Sila masukkan nombor telefon."
-    );
-
-    return;
-
-  }
-
-
-  /*
-   * START LOADING
-   */
-
-  setLoading(true);
-
-
+async function loadDashboard() {
   try {
+    const result = await apiJSONP("api_dashboard");
 
-    /*
-     * API REGISTER
-     */
+    console.log("BRISK API DASHBOARD:", result);
 
-    const result =
-      await apiJSONP(
-        "api_register",
-        {
-          dun:
-            dun,
-
-          nama:
-            nama,
-
-          telefon:
-            telefon
-        }
-      );
-
-
-    console.log(
-      "API REGISTER:",
-      result
-    );
-
-
-    setLoading(false);
-
-
-    /*
-     * ERROR
-     */
-
-    if (
-      !result ||
-      result.success === false
-    ) {
-
-      if (
-        result &&
-        result.duplicate
-      ) {
-
-        showError(
-          "⚠️ " +
-          (
-            result.message ||
-            "Peserta telah berdaftar."
-          ) +
-          (
-            result.nama
-              ? " Peserta: " +
-                result.nama
-              : ""
-          ) +
-          (
-            result.dun
-              ? " (" +
-                result.dun +
-                ")"
-              : ""
-          )
-        );
-
-      } else {
-
-        showError(
-          result?.message ||
-          "Pendaftaran gagal."
-        );
-
-      }
-
-
-      return;
-
+    if (!result || result.success === false) {
+      throw new Error(result?.message || "Gagal membaca dashboard.");
     }
 
+    document.getElementById("totalCount").textContent = fmt(result.total);
+    document.getElementById("checkedIn").textContent = fmt(result.checkedIn);
+    document.getElementById("pending").textContent = fmt(result.pending);
+    document.getElementById("percentage").textContent =
+      Number(result.percentage || 0).toFixed(1) + "%";
+    document.getElementById("updated").textContent = result.updated || "—";
 
-    /*
-     * SUCCESS
-     */
+    renderDUN(result.dun || []);
+    setStatus(true, "Sistem online · data terkini");
 
-    showSuccess(
-      result
-    );
+  } catch (err) {
+    console.error(err);
+    setStatus(false, "API tidak dapat dicapai");
 
+    document.getElementById("totalCount").textContent = "—";
+    document.getElementById("checkedIn").textContent = "—";
+    document.getElementById("pending").textContent = "—";
+    document.getElementById("percentage").textContent = "—";
+    document.getElementById("updated").textContent = "—";
 
-    /*
-     * Refresh statistics
-     */
-
-    loadStats();
-
-
-  } catch (error) {
-
-    setLoading(false);
-
-
-    console.error(
-      "Register error:",
-      error
-    );
-
-
-    showError(
-      error.message ||
-      "Ralat sistem berlaku."
-    );
-
+    document.getElementById("dunGrid").innerHTML = `
+      <div class="dun" style="grid-column:1/-1;text-align:center;color:#94a3b8">
+        Statistik tidak dapat dimuat.
+      </div>`;
   }
-
 }
 
+function renderDUN(list) {
+  const map = {
+    "N.11": {code:"N.11", name:"Sungai Udang", total:0, checkedIn:0, pending:0, percentage:0},
+    "N.12": {code:"N.12", name:"Pantai Kundor", total:0, checkedIn:0, pending:0, percentage:0},
+    "N.13": {code:"N.13", name:"Paya Rumput", total:0, checkedIn:0, pending:0, percentage:0},
+    "N.14": {code:"N.14", name:"Kelebang", total:0, checkedIn:0, pending:0, percentage:0}
+  };
 
-/* =========================================================
-   SHOW SUCCESS
-   ========================================================= */
+  list.forEach(item => {
+    const dun = String(item.dun || "").toUpperCase();
+    let key = "";
 
-function showSuccess(
-  result
-) {
+    if (dun.startsWith("N.11")) key = "N.11";
+    else if (dun.startsWith("N.12")) key = "N.12";
+    else if (dun.startsWith("N.13")) key = "N.13";
+    else if (dun.startsWith("N.14")) key = "N.14";
 
-  document.getElementById(
-    "registrationSection"
-  ).style.display =
-    "none";
+    if (!key) return;
 
-
-  document.getElementById(
-    "successSection"
-  ).style.display =
-    "block";
-
-
-  document.getElementById(
-    "cardNama"
-  ).textContent =
-    result.nama ||
-    "";
-
-
-  document.getElementById(
-    "cardDun"
-  ).textContent =
-    result.dun ||
-    "";
-
-
-  document.getElementById(
-    "cardTelefon"
-  ).textContent =
-    result.telefon ||
-    result.phone ||
-    "";
-
-
-  document.getElementById(
-    "cardTimestamp"
-  ).textContent =
-    result.timestamp ||
-    result.time ||
-    new Date().toLocaleString(
-      "ms-MY"
-    );
-
-}
-
-
-/* =========================================================
-   NEW REGISTRATION
-   ========================================================= */
-
-function newRegistration() {
-
-  document.getElementById(
-    "registrationSection"
-  ).style.display =
-    "block";
-
-
-  document.getElementById(
-    "successSection"
-  ).style.display =
-    "none";
-
-
-  document.getElementById(
-    "dun"
-  ).value =
-    "";
-
-
-  document.getElementById(
-    "nama"
-  ).value =
-    "";
-
-
-  document.getElementById(
-    "telefon"
-  ).value =
-    "";
-
-
-  hideError();
-
-
-  document
-    .getElementById(
-      "nama"
-    )
-    .focus();
-
-}
-
-
-/* =========================================================
-   LOADING
-   ========================================================= */
-
-function setLoading(
-  status
-) {
-
-  const btn =
-    document.getElementById(
-      "registerBtn"
-    );
-
-
-  const loading =
-    document.getElementById(
-      "loading"
-    );
-
-
-  btn.disabled =
-    status;
-
-
-  if (status) {
-
-    btn.textContent =
-      "SEDANG PROSES...";
-
-
-    loading.style.display =
-      "block";
-
-  } else {
-
-    btn.textContent =
-      "DAFTAR SEKARANG";
-
-
-    loading.style.display =
-      "none";
-
-  }
-
-}
-
-
-/* =========================================================
-   ERROR
-   ========================================================= */
-
-function showError(
-  message
-) {
-
-  const box =
-    document.getElementById(
-      "errorBox"
-    );
-
-
-  box.textContent =
-    message;
-
-
-  box.style.display =
-    "block";
-
-
-  box.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "center"
+    map[key].total = Number(item.total || 0);
+    map[key].checkedIn = Number(item.checkedIn || 0);
+    map[key].pending = Number(item.pending || 0);
+    map[key].percentage = Number(item.percentage || 0);
   });
 
+  document.getElementById("dunGrid").innerHTML =
+    Object.values(map).map(item => `
+      <div class="dun">
+        <div class="dun-head">
+          <div class="dun-name">${esc(item.name)}</div>
+          <div class="dun-code">${item.code}</div>
+        </div>
+
+        <div class="dun-total">
+          ${fmt(item.total)}
+          <small>PESERTA</small>
+        </div>
+
+        <div class="bar">
+          <div style="width:${Math.min(100, Math.max(0, item.percentage))}%"></div>
+        </div>
+
+        <div class="dun-foot">
+          <span>✓ ${fmt(item.checkedIn)} hadir</span>
+          <span>${fmt(item.pending)} belum</span>
+        </div>
+      </div>
+    `).join("");
 }
 
+async function quickSearch() {
+  const keyword = document.getElementById("searchInput").value.trim();
+  const searchType = document.getElementById("searchType").value;
+  const button = document.getElementById("searchBtn");
+  const box = document.getElementById("searchResults");
 
-function hideError() {
-
-  document.getElementById(
-    "errorBox"
-  ).style.display =
-    "none";
-
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHtml(
-  value
-) {
-
-  return String(
-    value ?? ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
-}
-
-
-/* =========================================================
-   PRINT CARD
-   ========================================================= */
-
-function printCard() {
-
-  const card =
-    document.querySelector(
-      ".participant-card"
-    );
-
-
-  if (!card) {
+  if (!keyword) {
+    box.style.display = "block";
+    box.innerHTML = `<div style="color:#b91c1c;font-size:12px">Sila masukkan maklumat carian.</div>`;
     return;
   }
 
+  button.disabled = true;
+  button.textContent = "CARI...";
+  box.style.display = "block";
+  box.innerHTML = `<div style="color:#64748b;font-size:12px">Mencari peserta...</div>`;
 
-  const printWindow =
-    window.open(
-      "",
-      "_blank",
-      "width=500,height=700"
-    );
+  try {
+    const result = await apiJSONP("api_search", {
+      keyword: keyword,
+      searchType: searchType
+    });
 
+    console.log("BRISK API SEARCH:", result);
 
-  if (!printWindow) {
+    if (!result || result.success === false) {
+      throw new Error(result?.message || "Carian gagal.");
+    }
 
-    showError(
-      "Browser menyekat popup cetakan. Sila benarkan popup untuk laman ini."
-    );
+    const rows = Array.isArray(result.results)
+      ? result.results
+      : Array.isArray(result.data)
+        ? result.data
+        : [];
 
-    return;
+    if (!rows.length) {
+      box.innerHTML = `<div style="color:#64748b;font-size:12px">Tiada peserta ditemui.</div>`;
+      return;
+    }
 
+    box.innerHTML = rows.slice(0,20).map(item => {
+      const checked =
+        item.checkedIn === true ||
+        String(item.checkInStatus || "").toUpperCase().includes("SUDAH") ||
+        String(item.status || "").toUpperCase().includes("SUDAH");
+
+      const serial =
+        item.serialFormatted ||
+        item.serial ||
+        item.noSiri ||
+        item["NO SIRI"] ||
+        "";
+
+      const name =
+        item.nama ||
+        item.name ||
+        item["NAMA"] ||
+        "";
+
+      const dun =
+        item.dun ||
+        item.DUN ||
+        "";
+
+      const counter =
+        item.counterLabel ||
+        item.counter ||
+        item.kaunter ||
+        "";
+
+      return `
+        <div class="result">
+          <div>
+            <div class="result-name">${esc(name)}</div>
+            <div class="result-meta">
+              ${esc(dun)} · No Siri ${esc(String(serial).padStart(4,"0"))} · ${esc(counter)}
+            </div>
+          </div>
+          <div class="badge ${checked ? "ok" : "pending"}">
+            ${checked ? "SUDAH CHECK-IN" : "BELUM CHECK-IN"}
+          </div>
+        </div>`;
+    }).join("");
+
+  } catch (err) {
+    console.error(err);
+    box.innerHTML = `<div style="color:#b91c1c;font-size:12px">${esc(err.message || "Carian gagal.")}</div>`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "CARI";
   }
-
-
-  printWindow.document.write(`
-
-    <!DOCTYPE html>
-
-    <html>
-
-    <head>
-
-      <title>
-        Brisk Walk - Kad Peserta
-      </title>
-
-      <style>
-
-        * {
-          box-sizing: border-box;
-        }
-
-        body {
-
-          margin: 0;
-
-          padding: 30px;
-
-          font-family:
-            Arial,
-            Helvetica,
-            sans-serif;
-
-          background: white;
-
-        }
-
-        .participant-card {
-
-          max-width: 430px;
-
-          margin: auto;
-
-          background:
-            linear-gradient(
-              135deg,
-              #0f172a,
-              #1e293b
-            );
-
-          color: white;
-
-          border-radius: 24px;
-
-          padding: 26px;
-
-        }
-
-        .event-label {
-
-          font-size: 10px;
-
-          letter-spacing: 2px;
-
-          opacity: .55;
-
-          margin-bottom: 20px;
-
-        }
-
-        .participant-name {
-
-          font-size: 25px;
-
-          font-weight: 800;
-
-          margin-bottom: 22px;
-
-        }
-
-        .participant-info {
-
-          display: grid;
-
-          grid-template-columns:
-            1fr 1fr;
-
-          gap: 15px;
-
-        }
-
-        .info-label {
-
-          font-size: 10px;
-
-          opacity: .5;
-
-          margin-bottom: 5px;
-
-        }
-
-        .info-value {
-
-          font-size: 14px;
-
-          font-weight: 700;
-
-        }
-
-        .registration-time {
-
-          margin-top: 20px;
-
-          padding-top: 15px;
-
-          border-top:
-            1px solid
-            rgba(255,255,255,.15);
-
-        }
-
-      </style>
-
-    </head>
-
-    <body>
-
-      ${card.outerHTML}
-
-      <script>
-
-        window.onload =
-          function() {
-
-            window.print();
-
-          };
-
-      <\/script>
-
-    </body>
-
-    </html>
-
-  `);
-
-
-  printWindow.document.close();
-
 }
 
+window.addEventListener("load", loadDashboard);
+
+// Auto refresh setiap 10 saat, sama konsep dashboard operasi.
+setInterval(loadDashboard, 10000);
 </script>
-
-
 </body>
-
 </html>
