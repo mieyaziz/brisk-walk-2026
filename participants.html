@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brisk Walk 2026 — Peserta</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#07111f;
+  --panel:rgba(15,27,45,.90);
+  --panel2:rgba(20,36,58,.82);
+  --line:rgba(255,255,255,.09);
+  --text:#f4f8ff;
+  --muted:#9fb0c7;
+  --green:#39d98a;
+  --blue:#35a7ff;
+  --orange:#ffb454;
+  --red:#ff647c;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% 5%,rgba(53,167,255,.13),transparent 30%),
+    radial-gradient(circle at 90% 90%,rgba(57,217,138,.10),transparent 30%),
+    linear-gradient(135deg,#06101d,#0a1728 55%,#07111f);
+}
+button,select,input{font:inherit}
+a{text-decoration:none;color:inherit}
+
+.page{
+  width:min(1220px,100%);
+  margin:auto;
+  padding:22px;
+}
+
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.logo{
+  width:50px;
+  height:50px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--blue),var(--green));
+  color:#06111d;
+  font-weight:950;
+  font-size:21px;
+}
+
+.eyebrow{
+  color:var(--green);
+  font-size:10px;
+  letter-spacing:1.8px;
+  font-weight:900;
+}
+
+.title{
+  font-size:25px;
+  font-weight:900;
+  margin-top:2px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.btn{
+  height:42px;
+  padding:0 14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.05);
+  color:#e5effc;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn:hover{
+  background:rgba(255,255,255,.09);
+}
+
+.btn.primary{
+  background:linear-gradient(135deg,var(--blue),var(--green));
+  color:#06111d;
+  border:0;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  backdrop-filter:blur(16px);
+}
+
+.controls{
+  padding:20px;
+  margin-bottom:16px;
+}
+
+.control-grid{
+  display:grid;
+  grid-template-columns:1.2fr 1fr auto;
+  gap:12px;
+  align-items:end;
+}
+
+.field label{
+  display:block;
+  font-size:10px;
+  font-weight:900;
+  color:#b9c8da;
+  margin-bottom:7px;
+  letter-spacing:.6px;
+}
+
+select,
+input{
+  width:100%;
+  height:46px;
+  border-radius:13px;
+  border:1px solid var(--line);
+  background:#091625;
+  color:var(--text);
+  padding:0 13px;
+  outline:none;
+}
+
+select:focus,
+input:focus{
+  border-color:rgba(53,167,255,.7);
+  box-shadow:0 0 0 3px rgba(53,167,255,.10);
+}
+
+.searchbox{
+  position:relative;
+}
+
+.searchbox input{
+  padding-left:40px;
+}
+
+.searchicon{
+  position:absolute;
+  left:13px;
+  top:13px;
+  opacity:.55;
+}
+
+.load{
+  height:46px;
+  padding:0 19px;
+  border:0;
+  border-radius:13px;
+  cursor:pointer;
+  font-weight:900;
+  color:#06111d;
+  background:linear-gradient(135deg,var(--blue),var(--green));
+}
+
+.load:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.stat{
+  padding:17px;
+  border-radius:18px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+}
+
+.statlabel{
+  font-size:10px;
+  color:var(--muted);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+.statvalue{
+  font-size:27px;
+  font-weight:950;
+  margin-top:6px;
+}
+
+.green{color:var(--green)}
+.blue{color:var(--blue)}
+.orange{color:var(--orange)}
+
+.listpanel{
+  overflow:hidden;
+}
+
+.listhead{
+  padding:19px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+}
+
+.listtitle{
+  font-size:17px;
+  font-weight:900;
+}
+
+.listmeta{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.tablewrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:850px;
+}
+
+th{
+  text-align:left;
+  padding:12px 14px;
+  font-size:10px;
+  color:#9fb0c7;
+  letter-spacing:.6px;
+  background:rgba(255,255,255,.035);
+  border-bottom:1px solid var(--line);
+}
+
+td{
+  padding:13px 14px;
+  font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  vertical-align:middle;
+}
+
+tr:hover td{
+  background:rgba(255,255,255,.025);
+}
+
+.serial{
+  font-weight:950;
+  color:var(--blue);
+  font-size:14px;
+}
+
+.name{
+  font-weight:850;
+  color:#f1f6ff;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 9px;
+  border-radius:9px;
+  font-size:9px;
+  font-weight:900;
+}
+
+.badge.pending{
+  background:rgba(255,180,84,.10);
+  color:var(--orange);
+}
+
+.badge.checked{
+  background:rgba(57,217,138,.10);
+  color:var(--green);
+}
+
+.view{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.045);
+  color:#dce8f7;
+  border-radius:9px;
+  padding:7px 10px;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:850;
+}
+
+.view:hover{
+  background:rgba(255,255,255,.09);
+}
+
+.empty{
+  padding:55px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.empty .icon{
+  font-size:34px;
+  margin-bottom:8px;
+}
+
+.error{
+  color:var(--red);
+}
+
+.footer{
+  text-align:center;
+  color:#70829a;
+  font-size:11px;
+  padding:18px 0 8px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(2,8,18,.72);
+  backdrop-filter:blur(8px);
+  z-index:1000;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modalbox{
+  width:min(520px,100%);
+  background:#0d1b2d;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:24px;
+  box-shadow:0 30px 100px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+
+.modalhead{
+  padding:18px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid var(--line);
+}
+
+.modalhead strong{
+  font-size:16px;
+}
+
+.close{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  color:#dce8f7;
+  cursor:pointer;
+}
+
+.modalbody{
+  padding:20px;
+}
+
+.profile{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.info{
+  padding:13px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--line);
+}
+
+.info.full{
+  grid-column:1/-1;
+}
+
+.info label{
+  display:block;
+  color:#8093aa;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.6px;
+  margin-bottom:5px;
+}
+
+.info div{
+  font-size:13px;
+  font-weight:800;
+  word-break:break-word;
+}
+
+.qr{
+  width:150px;
+  height:150px;
+  object-fit:contain;
+  background:white;
+  border-radius:14px;
+  padding:8px;
+  margin:15px auto 0;
+  display:block;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:22px;
+  transform:translateX(-50%) translateY(20px);
+  opacity:0;
+  pointer-events:none;
+  padding:12px 16px;
+  border-radius:13px;
+  background:#101f33;
+  border:1px solid var(--line);
+  box-shadow:0 15px 40px rgba(0,0,0,.35);
+  font-size:12px;
+  font-weight:800;
+  z-index:2000;
+  transition:.25s;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.spinner{
+  width:18px;
+  height:18px;
+  border:2px solid rgba(255,255,255,.2);
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:7px;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+
+@media(max-width:850px){
+  .control-grid{grid-template-columns:1fr 1fr}
+  .control-grid .load{width:100%}
+  .summary{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:560px){
+  .page{padding:13px}
+  .top{align-items:flex-start;flex-direction:column}
+  .actions{justify-content:flex-start}
+  .control-grid{grid-template-columns:1fr}
+  .summary{grid-template-columns:1fr 1fr}
+  .profile{grid-template-columns:1fr}
+  .info.full{grid-column:auto}
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">BW</div>
+    <div>
+      <div class="eyebrow">BRISK WALK 2026</div>
+      <div class="title">Senarai Peserta</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a class="btn" href="index.html">🏠 HOME</a>
+    <a class="btn" href="dashboard.html">📊 DASHBOARD</a>
+    <a class="btn" href="search.html">🔎 CARIAN</a>
+    <button class="btn" onclick="logout()">↩ LOGOUT</button>
+  </div>
+</header>
+
+
+<section class="panel controls">
+
+  <div class="control-grid">
+
+    <div class="field">
+      <label>DUN</label>
+      <select id="dunSelect">
+        <option value="">-- Pilih DUN --</option>
+        <option value="N.11 SUNGAI UDANG">N.11 SUNGAI UDANG</option>
+        <option value="N.12 PANTAI KUNDOR">N.12 PANTAI KUNDOR</option>
+        <option value="N.13 PAYA RUMPUT">N.13 PAYA RUMPUT</option>
+        <option value="N.14 KELEBANG">N.14 KELEBANG</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>CARI DALAM SENARAI</label>
+      <div class="searchbox">
+        <span class="searchicon">🔎</span>
+        <input id="filterInput" type="text" placeholder="Nama / No Siri / Telefon"
+               oninput="renderTable()">
+      </div>
+    </div>
+
+    <button class="load" id="loadBtn" onclick="loadParticipants()">
+      📋 PAPAR PESERTA
+    </button>
+
+  </div>
+
+</section>
+
+
+<section class="summary">
+
+  <div class="stat">
+    <div class="statlabel">Jumlah</div>
+    <div class="statvalue blue" id="total">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="statlabel">Check-in</div>
+    <div class="statvalue green" id="checked">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="statlabel">Belum Hadir</div>
+    <div class="statvalue orange" id="pending">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="statlabel">Kadar</div>
+    <div class="statvalue green" id="percentage">—</div>
+  </div>
+
+</section>
+
+
+<section class="panel listpanel">
+
+  <div class="listhead">
+    <div>
+      <div class="listtitle" id="listTitle">
+        Pilih DUN untuk melihat peserta
+      </div>
+      <div class="listmeta" id="listMeta">
+        Akses Admin diperlukan
+      </div>
+    </div>
+
+    <button class="btn" onclick="loadParticipants()">
+      🔄 REFRESH
+    </button>
+  </div>
+
+
+  <div class="tablewrap" id="tableWrap">
+
+    <div class="empty">
+      <div class="icon">👥</div>
+      <div>Sila pilih DUN dan tekan <b>PAPAR PESERTA</b>.</div>
+    </div>
+
+  </div>
+
+</section>
+
+
+<div class="footer">
+  Brisk Walk 2026 • Admin Participants Management
+</div>
+
+</div>
+
+
+<!-- DETAIL MODAL -->
+
+<div class="modal" id="detailModal" onclick="if(event.target===this)closeModal()">
+
+  <div class="modalbox">
+
+    <div class="modalhead">
+      <strong>Maklumat Peserta</strong>
+      <button class="close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modalbody">
+
+      <div class="profile">
+
+        <div class="info full">
+          <label>NAMA</label>
+          <div id="mNama">—</div>
+        </div>
+
+        <div class="info">
+          <label>NO SIRI</label>
+          <div id="mSerial">—</div>
+        </div>
+
+        <div class="info">
+          <label>KAUNTER</label>
+          <div id="mCounter">—</div>
+        </div>
+
+        <div class="info">
+          <label>DUN</label>
+          <div id="mDun">—</div>
+        </div>
+
+        <div class="info">
+          <label>TELEFON</label>
+          <div id="mPhone">—</div>
+        </div>
+
+        <div class="info full">
+          <label>PENDAFTARAN</label>
+          <div id="mTimestamp">—</div>
+        </div>
+
+        <div class="info full">
+          <label>STATUS</label>
+          <div id="mStatus">—</div>
+        </div>
+
+      </div>
+
+      <img id="mQr" class="qr" alt="QR Peserta" style="display:none">
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzR2qIU2lQq2dw3O61KErRrudTYrciU_fGeNHtrICzT9y_8OJM8-Q6TC0NNPRRN6VMn/exec";
+
+const TOKEN_KEY =
+"BRISK_AUTH_TOKEN";
+
+let currentParticipants = [];
+let toastTimer = null;
+
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+function getToken(){
+  return (
+    sessionStorage.getItem(TOKEN_KEY) ||
+    localStorage.getItem(TOKEN_KEY) ||
+    ""
+  );
+}
+
+
+async function ensureAdmin(){
+
+  const token = getToken();
+
+  if(!token){
+
+    window.location.href =
+      "login.html";
+
+    return false;
+  }
+
+  try{
+
+    const data =
+      await apiJSONP(
+        "api_auth",
+        { token }
+      );
+
+    if(
+      !data ||
+      !data.success ||
+      data.authenticated !== true ||
+      String(data.role || "").toUpperCase() !== "ADMIN"
+    ){
+
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+
+      window.location.href =
+        "login.html";
+
+      return false;
+    }
+
+    return true;
+
+  }catch(error){
+
+    console.error(error);
+
+    showToast(
+      "Sesi tidak dapat disahkan."
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   API JSONP
+   ========================================================= */
+
+function apiJSONP(page,params={}){
+
+  return new Promise(
+    (resolve,reject)=>{
+
+      const callbackName =
+        "bwParticipants_" +
+        Date.now() +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2);
+
+      const script =
+        document.createElement("script");
+
+      const query =
+        new URLSearchParams({
+          page,
+          ...params,
+          callback:callbackName
+        });
+
+
+      const timer =
+        setTimeout(()=>{
+
+          cleanup();
+
+          reject(
+            new Error(
+              "API timeout."
+            )
+          );
+
+        },15000);
+
+
+      function cleanup(){
+
+        clearTimeout(timer);
+
+        delete window[
+          callbackName
+        ];
+
+        script.remove();
+      }
+
+
+      window[
+        callbackName
+      ] = function(data){
+
+        cleanup();
+
+        resolve(data);
+
+      };
+
+
+      script.onerror =
+      function(){
+
+        cleanup();
+
+        reject(
+          new Error(
+            "Tidak dapat menghubungi server."
+          )
+        );
+
+      };
+
+
+      script.src =
+        API_URL +
+        "?" +
+        query.toString();
+
+      document.body.appendChild(
+        script
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   LOAD PARTICIPANTS
+   ========================================================= */
+
+async function loadParticipants(){
+
+  const dun =
+    document.getElementById(
+      "dunSelect"
+    ).value;
+
+  if(!dun){
+
+    showToast(
+      "Sila pilih DUN dahulu."
+    );
+
+    return;
+  }
+
+
+  const ok =
+    await ensureAdmin();
+
+  if(!ok) return;
+
+
+  const btn =
+    document.getElementById(
+      "loadBtn"
+    );
+
+  btn.disabled =
+    true;
+
+  btn.innerHTML =
+    '<span class="spinner"></span> MEMUAT...';
+
+
+  document.getElementById(
+    "tableWrap"
+  ).innerHTML = `
+    <div class="empty">
+      <div class="icon">⏳</div>
+      <div>Sedang mengambil data peserta...</div>
+    </div>
+  `;
+
+
+  try{
+
+    const data =
+      await apiJSONP(
+        "api_participants",
+        {
+          dun,
+          token:getToken()
+        }
+      );
+
+
+    if(
+      !data ||
+      !data.success
+    ){
+
+      throw new Error(
+        data?.message ||
+        "Gagal mendapatkan senarai peserta."
+      );
+
+    }
+
+
+    const result =
+      data.data ||
+      data;
+
+
+    currentParticipants =
+      Array.isArray(
+        result.participants
+      )
+        ? result.participants
+        : [];
+
+
+    document.getElementById(
+      "total"
+    ).textContent =
+      Number(
+        result.total || currentParticipants.length
+      ).toLocaleString("ms-MY");
+
+
+    document.getElementById(
+      "checked"
+    ).textContent =
+      Number(
+        result.checkedIn || 0
+      ).toLocaleString("ms-MY");
+
+
+    document.getElementById(
+      "pending"
+    ).textContent =
+      Number(
+        result.pending || 0
+      ).toLocaleString("ms-MY");
+
+
+    document.getElementById(
+      "percentage"
+    ).textContent =
+      Number(
+        result.percentage || 0
+      ).toFixed(1) + "%";
+
+
+    document.getElementById(
+      "listTitle"
+    ).textContent =
+      result.shortName ||
+      dun;
+
+
+    document.getElementById(
+      "listMeta"
+    ).textContent =
+      currentParticipants.length.toLocaleString("ms-MY") +
+      " peserta";
+
+
+    renderTable();
+
+    showToast(
+      "Senarai peserta berjaya dimuatkan."
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    currentParticipants =
+      [];
+
+    document.getElementById(
+      "tableWrap"
+    ).innerHTML = `
+      <div class="empty">
+        <div class="icon">⚠️</div>
+        <div class="error">${escapeHtml(
+          error.message ||
+          "Gagal mendapatkan data."
+        )}</div>
+      </div>
+    `;
+
+    showToast(
+      error.message ||
+      "Gagal mendapatkan data."
+    );
+
+  }finally{
+
+    btn.disabled =
+      false;
+
+    btn.textContent =
+      "📋 PAPAR PESERTA";
+  }
+}
+
+
+/* =========================================================
+   FILTER + TABLE
+   ========================================================= */
+
+function renderTable(){
+
+  const filter =
+    String(
+      document.getElementById(
+        "filterInput"
+      ).value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  const rows =
+    currentParticipants.filter(
+      function(item){
+
+        if(!filter)
+          return true;
+
+        return [
+
+          item.nama,
+          item.serial,
+          item.telefon,
+          item.counter
+
+        ]
+          .map(
+            v =>
+              String(
+                v || ""
+              ).toLowerCase()
+          )
+          .some(
+            v =>
+              v.includes(filter)
+          );
+
+      }
+    );
+
+
+  if(!rows.length){
+
+    document.getElementById(
+      "tableWrap"
+    ).innerHTML = `
+      <div class="empty">
+        <div class="icon">🔎</div>
+        <div>Tiada peserta sepadan.</div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  let html = `
+    <table>
+
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>NO SIRI</th>
+          <th>NAMA</th>
+          <th>TELEFON</th>
+          <th>KAUNTER</th>
+          <th>STATUS</th>
+          <th>DAFTAR</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+  `;
+
+
+  rows.forEach(
+    function(item,index){
+
+      html += `
+
+        <tr>
+
+          <td class="muted">
+            ${index + 1}
+          </td>
+
+          <td>
+            <div class="serial">
+              ${escapeHtml(
+                item.serial || "—"
+              )}
+            </div>
+          </td>
+
+          <td>
+            <div class="name">
+              ${escapeHtml(
+                item.nama || "—"
+              )}
+            </div>
+          </td>
+
+          <td class="muted">
+            ${escapeHtml(
+              item.telefon || "—"
+            )}
+          </td>
+
+          <td class="muted">
+            ${escapeHtml(
+              item.counter || "—"
+            )}
+          </td>
+
+          <td>
+            ${
+              item.checkedIn
+                ? `<span class="badge checked">✓ CHECK-IN</span>`
+                : `<span class="badge pending">BELUM HADIR</span>`
+            }
+          </td>
+
+          <td class="muted">
+            ${escapeHtml(
+              item.timestamp || "—"
+            )}
+          </td>
+
+          <td>
+            <button
+              class="view"
+              onclick="showDetail(${currentParticipants.indexOf(item)})"
+            >
+              LIHAT
+            </button>
+          </td>
+
+        </tr>
+
+      `;
+
+    }
+  );
+
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+
+  document.getElementById(
+    "tableWrap"
+  ).innerHTML =
+    html;
+}
+
+
+/* =========================================================
+   DETAIL
+   ========================================================= */
+
+function showDetail(index){
+
+  const item =
+    currentParticipants[index];
+
+  if(!item) return;
+
+
+  document.getElementById(
+    "mNama"
+  ).textContent =
+    item.nama || "—";
+
+
+  document.getElementById(
+    "mSerial"
+  ).textContent =
+    item.serial || "—";
+
+
+  document.getElementById(
+    "mCounter"
+  ).textContent =
+    item.counter || "—";
+
+
+  document.getElementById(
+    "mDun"
+  ).textContent =
+    item.shortName ||
+    item.dun ||
+    "—";
+
+
+  document.getElementById(
+    "mPhone"
+  ).textContent =
+    item.telefon || "—";
+
+
+  document.getElementById(
+    "mTimestamp"
+  ).textContent =
+    item.timestamp || "—";
+
+
+  const status =
+    document.getElementById(
+      "mStatus"
+    );
+
+  status.textContent =
+    item.checkedIn
+      ? "✓ SUDAH CHECK-IN • " +
+        (item.checkInTime || "")
+      : "BELUM HADIR";
+
+
+  status.style.color =
+    item.checkedIn
+      ? "var(--green)"
+      : "var(--orange)";
+
+
+  const qr =
+    document.getElementById(
+      "mQr"
+    );
+
+
+  if(item.qrUrl){
+
+    qr.src =
+      item.qrUrl;
+
+    qr.style.display =
+      "block";
+
+  }else{
+
+    qr.removeAttribute(
+      "src"
+    );
+
+    qr.style.display =
+      "none";
+  }
+
+
+  document.getElementById(
+    "detailModal"
+  ).classList.add(
+    "show"
+  );
+}
+
+
+function closeModal(){
+
+  document.getElementById(
+    "detailModal"
+  ).classList.remove(
+    "show"
+  );
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+function logout(){
+
+  const token =
+    getToken();
+
+
+  if(token){
+
+    apiJSONP(
+      "api_logout",
+      {token}
+    ).catch(
+      ()=>{}
+    );
+
+  }
+
+
+  sessionStorage.removeItem(
+    TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    TOKEN_KEY
+  );
+
+
+  window.location.href =
+    "login.html";
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+function showToast(message){
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+
+  clearTimeout(
+    toastTimer
+  );
+
+
+  toastTimer =
+    setTimeout(
+      function(){
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      2800
+    );
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
+function escapeHtml(value){
+
+  return String(
+    value ?? ""
+  )
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+/* =========================================================
+   URL DUN
+   ========================================================= */
+
+function loadDunFromUrl(){
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const dun =
+    params.get("dun");
+
+  if(dun){
+
+    const select =
+      document.getElementById(
+        "dunSelect"
+      );
+
+    select.value =
+      dun;
+
+    loadParticipants();
+  }
+}
+
+
+/* =========================================================
+   INITIAL
+   ========================================================= */
+
+ensureAdmin()
+  .then(
+    function(ok){
+
+      if(ok){
+
+        loadDunFromUrl();
+
+      }
+
+    }
+  );
+
+</script>
+
+</body>
+</html>
